@@ -1,10 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Edu_NSW_ACT_Foundation } from "next/font/google";
-import "./globals.css";
-import { StoreProvider } from "./lib/provider/StoreProvider";
-import AuthProvider from "./hooks/authProvider";
-import { Toaster } from "sonner";
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -36,9 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${eduCursive.variable} antialiased`}
       >
         {" "}
-        <StoreProvider>
-          <AuthProvider>{children}</AuthProvider> <Toaster />
-        </StoreProvider>
+        {children}
       </body>
     </html>
   );
