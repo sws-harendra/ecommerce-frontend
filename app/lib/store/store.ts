@@ -4,12 +4,13 @@ import { useDispatch, useSelector, TypedUseSelectorHook } from "react-redux";
 import authReducer from "./features/authSlice";
 import productReducer from "./features/productSlice";
 import bannerReducer from "./features/bannerSlice";
-
+import cartReducer from "./features/cartSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     product: productReducer,
     banners: bannerReducer,
+    cart: cartReducer,
   },
 });
 

@@ -59,8 +59,8 @@ instance.interceptors.response.use(
         await refreshAccessToken();
         return instance(originalRequest);
       } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
-        window.location.href = "/authentication/login";
+        // console.error("Token refresh failed:", refreshError);
+        // window.location.href = "/authentication/login";
       }
     }
 

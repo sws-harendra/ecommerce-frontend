@@ -45,7 +45,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     if (status === "failed" || (!isAuthenticated && status === "succeeded")) {
       console.log("---> Authentication failed, redirecting to login");
-      router.push("/authentication/login");
+      // router.push("/authentication/login");
       return;
     }
 
@@ -53,7 +53,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const rolePath: Record<string, string> = {
         admin: "/admin",
         instructor: "/instructor",
-        user: "/user",
+        user: "/",
       };
 
       const dashboardPath: Record<string, string> = {

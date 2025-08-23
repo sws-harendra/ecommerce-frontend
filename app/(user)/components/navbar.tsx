@@ -21,17 +21,19 @@ import {
 import Link from "next/link";
 import { logout } from "@/app/lib/store/features/authSlice";
 import { useRouter } from "next/navigation";
+import { selectCartItemsCount } from "@/app/lib/store/features/cartSlice";
 
 export default function EcommerceNavbar() {
   const dispatch = useAppDispatch(); // ✅ typed dispatch
   const { isAuthenticated, user, status } = useAppSelector(
     (state: RootState) => state.auth // ✅ typed state
   );
+  const cartCount = useAppSelector(selectCartItemsCount);
+
   const router = useRouter();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [cartCount] = useState(3);
   const [wishlistCount] = useState(7);
   const [searchInput, setSearchInput] = useState("");
   const handleSearch = () => {
@@ -161,14 +163,16 @@ export default function EcommerceNavbar() {
 
             {/* Cart */}
             <div className="relative">
-              <button className="text-gray-600 hover:text-purple-600 transition-colors duration-200 group">
-                <ShoppingCart className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-bounce">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
+              <Link href={"/cart"}>
+                <button className="text-gray-600 hover:text-purple-600 transition-colors duration-200 group">
+                  <ShoppingCart className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-bounce">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+              </Link>
             </div>
 
             {/* Profile Dropdown */}
