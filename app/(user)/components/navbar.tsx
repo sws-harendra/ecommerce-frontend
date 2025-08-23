@@ -20,17 +20,25 @@ import {
 } from "@/app/lib/store/store";
 import Link from "next/link";
 import { logout } from "@/app/lib/store/features/authSlice";
+import { useRouter } from "next/navigation";
 
 export default function EcommerceNavbar() {
   const dispatch = useAppDispatch(); // ✅ typed dispatch
   const { isAuthenticated, user, status } = useAppSelector(
     (state: RootState) => state.auth // ✅ typed state
   );
+  const router = useRouter();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [cartCount] = useState(3);
   const [wishlistCount] = useState(7);
+  const [searchInput, setSearchInput] = useState("");
+  const handleSearch = () => {
+    if (searchInput.trim() !== "") {
+      router.push(`/products?search=${encodeURIComponent(searchInput)}`);
+    }
+  };
 
   const categories = [
     { name: "Electronics", icon: Zap, color: "text-blue-500" },
@@ -62,9 +70,11 @@ export default function EcommerceNavbar() {
           {/* Logo */}
           <div className="flex items-center space-x-8">
             <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                SWS
-              </h1>
+              <Link href="/">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  SWS
+                </h1>
+              </Link>
             </div>
 
             {/* Desktop Categories */}
@@ -115,11 +125,16 @@ export default function EcommerceNavbar() {
             <div className="relative">
               <input
                 type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search for products, brands, categories..."
                 className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-full focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
               />
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all duration-200 text-sm font-medium">
+              <button
+                onClick={handleSearch}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all duration-200 text-sm font-medium"
+              >
                 Search
               </button>
             </div>

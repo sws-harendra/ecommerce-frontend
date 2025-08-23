@@ -30,11 +30,10 @@ export default function BannerCarousel() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (error) {
-      toast.error(error as string);
-    }
-  }, [error]); // Auto-play functionality
-  // Auto-play
+    if (error) toast.error(error as string);
+  }, [error]);
+
+  // autoplay
   useEffect(() => {
     if (isPlaying && !isHovered && banners.length > 0) {
       const interval = setInterval(() => {
@@ -55,15 +54,11 @@ export default function BannerCarousel() {
     setImageLoaded((prev) => ({ ...prev, [index]: true }));
 
   const handleBannerClick = (banner: any) => {
-    if (banner.link) {
-      window.location.href = banner.link;
-    }
+    if (banner.link) window.location.href = banner.link;
   };
-  const isLoading = status === "loading";
 
-  if (isLoading) {
-    return <Loader />;
-  }
+  const isLoading = status === "loading";
+  if (isLoading) return <Loader />;
 
   if (!banners.length) {
     return (
@@ -81,6 +76,7 @@ export default function BannerCarousel() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
+        {/* slides */}
         <div
           className="flex transition-transform duration-700 ease-in-out h-full"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -108,8 +104,10 @@ export default function BannerCarousel() {
                 </div>
               )}
 
+              {/* gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent opacity-70 group-hover:opacity-80 transition-opacity duration-300" />
 
+              {/* text content */}
               <div className="absolute inset-0 flex items-center justify-start">
                 <div className="text-white px-6 sm:px-12 md:px-16 lg:px-20 max-w-2xl">
                   <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-2 sm:mb-4 leading-tight">
@@ -132,7 +130,69 @@ export default function BannerCarousel() {
           ))}
         </div>
 
-        {/* arrows, dots etc. — keep same as before */}
+        {/* arrows */}
+        <button
+          onClick={prevSlide}
+          className="absolute top-1/2 left-4 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute top-1/2 right-4 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+
+        {/* play/pause */}
+        <button
+          onClick={() => setIsPlaying(!isPlaying)}
+          className="absolute bottom-4 left-4 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition"
+        >
+          {isPlaying ? (
+            <Pause className="w-5 h-5" />
+          ) : (
+            <Play className="w-5 h-5" />
+          )}
+        </button>
+
+        {/* counter */}
+        <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+          {currentSlide + 1} / {banners.length}
+        </div>
+
+        {/* dots */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-3 h-3 rounded-full transition ${
+                currentSlide === index ? "bg-white" : "bg-gray-400"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* thumbnail preview */}
+      <div className="hidden md:flex justify-center mt-4 space-x-2">
+        {banners.map((banner, index) => (
+          <div
+            key={banner.id}
+            onClick={() => goToSlide(index)}
+            className={`w-20 h-12 relative cursor-pointer rounded overflow-hidden border-2 ${
+              currentSlide === index ? "border-blue-500" : "border-transparent"
+            }`}
+          >
+            <Image
+              src={getImageUrl(banner.imageUrl)}
+              alt={banner.title}
+              fill
+              className="object-cover"
+            />
+          </div>
+        ))}
       </div>
     </div>
   );

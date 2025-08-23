@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Loader } from "lucide-react";
 import Heading from "@/app/commonComponents/heading";
-import ProductCard from "./ProductCard"; // 👈 Import reusable card
+import ProductCard from "./productCard"; // 👈 Import reusable card
 import { useAppDispatch, useAppSelector } from "@/app/lib/store/store";
 import { toast } from "sonner";
 import { getTrendingProduct } from "@/app/lib/store/features/productSlice";

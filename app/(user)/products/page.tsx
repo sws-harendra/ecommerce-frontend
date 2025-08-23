@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/app/lib/store/store";
 import { fetchProducts, Product } from "@/app/lib/store/features/productSlice";
 import { toast } from "sonner";
@@ -13,13 +13,25 @@ import {
   List,
   ChevronDown,
   X,
+  Eye,
 } from "lucide-react";
+import { getImageUrl } from "@/app/utils/getImageUrl";
+import { useSearchParams } from "next/navigation";
 
 // Product Card Component
-const ProductCard = ({ product, viewMode }) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+interface ProductCardProps {
+  product: Product;
+  viewMode: string;
+  onToggleFavorite: (id: number) => void;
+  isFavorite: boolean;
+}
 
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  viewMode,
+  onToggleFavorite,
+  isFavorite,
+}) => {
   // Calculate discount percentage
   const originalPrice = parseFloat(product.originalPrice);
   const discountPrice = parseFloat(product.discountPrice);
@@ -30,34 +42,31 @@ const ProductCard = ({ product, viewMode }) => {
   // Get first image from images array
   const productImage =
     product.images && product.images.length > 0
-      ? `${
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
-        }/uploads/${product.images[0]}`
+      ? `${getImageUrl(product.images[0])}`
       : `https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop&crop=center`;
 
   return (
     <div
-      className={`group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-gray-200 ${
-        viewMode === "list" ? "flex items-center p-4" : "flex flex-col"
+      className={`group relative bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 ${
+        viewMode === "list" ? "flex items-start p-4" : "flex flex-col"
       }`}
     >
       {/* Discount Badge */}
       {discountPercent > 0 && (
-        <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-          -{discountPercent}%
+        <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-red-500 to-pink-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-md">
+          {discountPercent}% OFF
         </div>
       )}
 
-      {/* Wishlist Button */}
+      {/* Favorite Button */}
       <button
-        onClick={() => setIsLiked(!isLiked)}
-        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
+        onClick={() => onToggleFavorite(product.id)}
+        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm transition-all duration-300 hover:bg-white hover:scale-110 shadow-sm"
       >
         <Heart
-          className={`w-4 h-4 transition-colors duration-300 ${
-            isLiked
-              ? "fill-red-500 text-red-500"
-              : "text-gray-400 hover:text-red-400"
+          size={18}
+          className={`transition-colors duration-300 ${
+            isFavorite ? "text-red-500 fill-red-500" : "text-gray-400"
           }`}
         />
       </button>
@@ -79,105 +88,121 @@ const ProductCard = ({ product, viewMode }) => {
       <div
         className={`relative overflow-hidden ${
           viewMode === "list"
-            ? "w-32 h-32 rounded-xl mr-4 flex-shrink-0"
+            ? "w-40 h-40 rounded-xl mr-4 flex-shrink-0"
             : "aspect-square w-full"
         }`}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-100 to-gray-50 animate-pulse" />
         <img
           src={productImage}
           alt={product.name}
-          className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${
-            imageLoaded ? "opacity-100" : "opacity-0"
-          }`}
-          onLoad={() => setImageLoaded(true)}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           onError={(e) => {
-            e.target.src = `https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop&crop=center`;
+            e.currentTarget.src = `https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop&crop=center`;
           }}
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        {/* Quick Actions on Hover */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-          <div className="flex gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-            <button
-              className={`p-3 bg-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-200 ${
-                product.sold_out === 1 ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              disabled={product.sold_out === 1}
-            >
-              <ShoppingCart className="w-5 h-5 text-gray-700" />
-            </button>
-          </div>
+        {/* Quick Action Buttons */}
+        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white hover:scale-105 transition-all duration-200">
+            <Eye size={16} className="text-gray-700" />
+          </button>
+          <button
+            className={`bg-blue-600 text-white p-2 rounded-full shadow-md hover:bg-blue-700 hover:scale-105 transition-all duration-200 flex items-center justify-center ${
+              product.sold_out === 1 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={product.sold_out === 1}
+          >
+            <ShoppingCart size={16} />
+          </button>
         </div>
       </div>
 
       {/* Product Info */}
-      <div className={`${viewMode === "list" ? "flex-1" : "p-4"}`}>
-        {/* Category Badge & Stock Info */}
-        <div className="flex items-center justify-between mb-2">
-          <span className="inline-block px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-full capitalize">
-            {product.Category?.name || "General"}
-          </span>
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-medium text-gray-700">4.5</span>
-          </div>
-        </div>
+      <div
+        className={`${viewMode === "list" ? "flex-1 py-2" : "p-4 space-y-3"}`}
+      >
+        {/* Category Badge */}
+        <span className="inline-block px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-full capitalize mb-2">
+          {product.Category?.name || "General"}
+        </span>
 
         {/* Product Name */}
         <h3
-          className={`font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300 capitalize ${
-            viewMode === "list" ? "text-lg" : "text-base"
+          className={`font-medium text-gray-800 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2 ${
+            viewMode === "list" ? "text-lg" : "text-sm leading-tight"
           }`}
         >
           {product.name}
         </h3>
 
-        {/* Description */}
-        <p
-          className={`text-gray-600 mb-3 ${
-            viewMode === "list"
-              ? "line-clamp-2 text-sm"
-              : "line-clamp-3 text-sm"
-          }`}
-        >
-          {product.description}
-        </p>
+        {/* Description - Only show in list view */}
+        {viewMode === "list" && (
+          <p className="text-gray-600 mb-3 text-sm line-clamp-2">
+            {product.description}
+          </p>
+        )}
 
-        {/* Price & Actions */}
-        <div
-          className={`flex items-center ${
-            viewMode === "list" ? "justify-between" : "justify-between"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-gray-900">
+        {/* Rating */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-1">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                size={12}
+                className={`${
+                  i < 4 // Using a fixed 4-star rating for now
+                    ? "text-yellow-400 fill-yellow-400"
+                    : "text-gray-300"
+                }`}
+              />
+            ))}
+            <span className="text-xs text-gray-600 ml-1">4.0</span>
+          </div>
+
+          {/* Stock Status */}
+          <span
+            className={`text-xs font-medium ${
+              product.stock > 0 ? "text-green-600" : "text-gray-500"
+            }`}
+          >
+            {product.stock > 0 ? "In Stock" : "Out of Stock"}
+          </span>
+        </div>
+
+        {/* Price */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-baseline space-x-2">
+            <span className="text-lg font-bold text-gray-900">
               ₹{discountPrice.toLocaleString()}
             </span>
-            {originalPrice !== discountPrice && (
+            {originalPrice > discountPrice && (
               <span className="text-sm text-gray-500 line-through">
                 ₹{originalPrice.toLocaleString()}
               </span>
             )}
           </div>
 
+          {/* Add to Cart Button */}
           <button
-            className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 hover:shadow-lg transform hover:scale-105 active:scale-95 ${
+            className={`p-2 rounded-lg transition-colors duration-200 group/cart ${
               product.sold_out === 1
-                ? "bg-gray-400 text-white cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-blue-100 text-blue-600 hover:bg-blue-200"
             }`}
             disabled={product.sold_out === 1}
           >
-            {product.sold_out === 1 ? "Sold Out" : "Add to Cart"}
+            <ShoppingCart
+              size={16}
+              className="group-hover/cart:scale-110 transition-transform"
+            />
           </button>
         </div>
 
-        {/* Tags */}
-        {product.tags && product.tags.length > 0 && (
+        {/* Tags - Only show in list view */}
+        {viewMode === "list" && product.tags && product.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {product.tags.slice(0, 2).map((tag, index) => {
-              // Clean up the tag string (remove quotes and brackets)
               const cleanTag = tag.replace(/[\[\]"]/g, "");
               return (
                 <span
@@ -191,6 +216,9 @@ const ProductCard = ({ product, viewMode }) => {
           </div>
         )}
       </div>
+
+      {/* Shimmer Effect */}
+      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
     </div>
   );
 };
@@ -230,11 +258,11 @@ const FilterSidebar = ({
 
       {/* Sidebar */}
       <div
-        className={`fixed lg:sticky top-0 left-0 h-screen lg:h-auto w-80 bg-white z-50 transform transition-transform duration-300 overflow-y-auto ${
+        className={`fixed lg:sticky top-0 left-0 h-screen lg:h-auto w-80 bg-white z-50 lg:z-auto transform transition-transform duration-300 overflow-y-auto ${
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="p-6 border-r border-gray-100">
+        <div className="p-6 border-r border-gray-100 h-full lg:h-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
@@ -281,7 +309,7 @@ const FilterSidebar = ({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm text-gray-600 mb-1">
-                  Min Price
+                  Min Price: ₹{priceRange[0].toLocaleString()}
                 </label>
                 <input
                   type="range"
@@ -294,13 +322,10 @@ const FilterSidebar = ({
                   }
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                 />
-                <span className="text-sm font-medium text-gray-900">
-                  ₹{priceRange[0].toLocaleString()}
-                </span>
               </div>
               <div>
                 <label className="block text-sm text-gray-600 mb-1">
-                  Max Price
+                  Max Price: ₹{priceRange[1].toLocaleString()}
                 </label>
                 <input
                   type="range"
@@ -313,35 +338,7 @@ const FilterSidebar = ({
                   }
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                 />
-                <span className="text-sm font-medium text-gray-900">
-                  ₹{priceRange[1].toLocaleString()}
-                </span>
               </div>
-            </div>
-          </div>
-
-          {/* Stock Filter */}
-          <div className="mb-8">
-            <h3 className="font-semibold text-gray-900 mb-4">Availability</h3>
-            <div className="space-y-2">
-              <label className="flex items-center cursor-pointer group">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 rounded"
-                />
-                <span className="ml-3 text-gray-700 group-hover:text-blue-600 transition-colors">
-                  In Stock
-                </span>
-              </label>
-              <label className="flex items-center cursor-pointer group">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 rounded"
-                />
-                <span className="ml-3 text-gray-700 group-hover:text-blue-600 transition-colors">
-                  On Sale
-                </span>
-              </label>
             </div>
           </div>
 
@@ -398,6 +395,19 @@ const FilterSidebar = ({
               <option value="discount">Highest Discount</option>
             </select>
           </div>
+
+          {/* Clear Filters Button */}
+          <button
+            onClick={() => {
+              setCategory("");
+              setPriceRange([0, 100000]);
+              setSortBy("");
+              setRating(0);
+            }}
+            className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+          >
+            Clear All Filters
+          </button>
         </div>
       </div>
     </>
@@ -405,12 +415,15 @@ const FilterSidebar = ({
 };
 
 export default function AllProducts() {
+  const searchParams = useSearchParams();
+  const querySearch = searchParams.get("search") || "";
+
   const dispatch = useAppDispatch();
   const { products, status, error } = useAppSelector((state) => state.product);
   const isLoading = status === "loading";
 
   // State
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(querySearch);
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
   const [category, setCategory] = useState("");
@@ -419,6 +432,13 @@ export default function AllProducts() {
   const [rating, setRating] = useState(0);
   const [viewMode, setViewMode] = useState("grid");
   const [filterOpen, setFilterOpen] = useState(false);
+  const [favorites, setFavorites] = useState<number[]>([]);
+  useEffect(() => {
+    if (querySearch !== search) {
+      setSearch(querySearch);
+      setPage(1);
+    }
+  }, [querySearch]);
 
   // Effects
   useEffect(() => {
@@ -433,12 +453,10 @@ export default function AllProducts() {
     };
 
     if (category) {
-      // Assuming you'll add categoryId mapping based on category name
       const categoryMap: { [key: string]: number } = {
         electronics: 1,
         fashion: 2,
         books: 3,
-        // Add more category mappings as per your backend
       };
       params.categoryId = categoryMap[category];
     }
@@ -449,30 +467,33 @@ export default function AllProducts() {
     dispatch(fetchProducts(params));
   }, [dispatch, page, limit, search, category, priceRange]);
 
-  const handleSearch = (searchTerm: string) => {
-    setPage(1);
-    const params: any = {
-      page: 1,
-      limit,
-      search: searchTerm,
-    };
-
-    if (category) {
-      const categoryMap: { [key: string]: number } = {
-        electronics: 1,
-        fashion: 2,
-        books: 3,
+  const handleSearch = useCallback(
+    (searchTerm: string) => {
+      setPage(1);
+      const params: any = {
+        page: 1,
+        limit,
+        search: searchTerm,
       };
-      params.categoryId = categoryMap[category];
-    }
 
-    if (priceRange[0] > 0) params.minPrice = priceRange[0];
-    if (priceRange[1] < 100000) params.maxPrice = priceRange[1];
+      if (category) {
+        const categoryMap: { [key: string]: number } = {
+          electronics: 1,
+          fashion: 2,
+          books: 3,
+        };
+        params.categoryId = categoryMap[category];
+      }
 
-    dispatch(fetchProducts(params));
-  };
+      if (priceRange[0] > 0) params.minPrice = priceRange[0];
+      if (priceRange[1] < 100000) params.maxPrice = priceRange[1];
 
-  // Filter and sort products locally (since backend might not support all filters yet)
+      dispatch(fetchProducts(params));
+    },
+    [category, priceRange, limit, dispatch]
+  );
+
+  // Filter and sort products locally
   const filteredProducts = products?.products
     ? [...products.products]
         .filter((product) => {
@@ -480,6 +501,9 @@ export default function AllProducts() {
           const discountPrice = parseFloat(product.discountPrice);
           if (discountPrice < priceRange[0] || discountPrice > priceRange[1])
             return false;
+
+          // Rating filter
+          if (rating > 0 && 4 < rating) return false; // Using fixed 4-star rating
 
           return true;
         })
@@ -514,10 +538,16 @@ export default function AllProducts() {
   const totalProducts = products?.totalItems || 0;
   const totalPages = products?.totalPages || 1;
 
+  const toggleFavorite = (id: number) => {
+    setFavorites((prev) =>
+      prev.includes(id) ? prev.filter((favId) => favId !== id) : [...prev, id]
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
@@ -528,24 +558,6 @@ export default function AllProducts() {
             </div>
 
             {/* Search Bar */}
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleSearch(search);
-                    }
-                  }}
-                  placeholder="Search products..."
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
-                />
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -569,7 +581,7 @@ export default function AllProducts() {
           {/* Main Content */}
           <div className="flex-1">
             {/* Toolbar */}
-            <div className="flex items-center justify-between mb-6 p-4 bg-white rounded-xl shadow-sm">
+            <div className="flex flex-wrap items-center justify-between mb-6 p-4 bg-white rounded-xl shadow-sm gap-4">
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setFilterOpen(true)}
@@ -583,29 +595,61 @@ export default function AllProducts() {
                   {totalProducts} products found
                 </div>
               </div>
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleSearch(search);
+                      }
+                    }}
+                    placeholder="Search products..."
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+                  />
+                </div>
+              </div>
+              {/* View Toggle and Sort */}
+              <div className="flex items-center gap-4">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                >
+                  <option value="">Sort by</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="rating">Highest Rated</option>
+                  <option value="newest">Newest First</option>
+                  <option value="discount">Highest Discount</option>
+                </select>
 
-              {/* View Toggle */}
-              <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-lg">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-md transition-all duration-200 ${
-                    viewMode === "grid"
-                      ? "bg-white shadow-sm text-blue-600"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  <Grid className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-md transition-all duration-200 ${
-                    viewMode === "list"
-                      ? "bg-white shadow-sm text-blue-600"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  <List className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-lg">
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={`p-2 rounded-md transition-all duration-200 ${
+                      viewMode === "grid"
+                        ? "bg-white shadow-sm text-blue-600"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    <Grid className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-2 rounded-md transition-all duration-200 ${
+                      viewMode === "list"
+                        ? "bg-white shadow-sm text-blue-600"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -631,7 +675,12 @@ export default function AllProducts() {
                     className="animate-fade-in"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <ProductCard product={product} viewMode={viewMode} />
+                    <ProductCard
+                      product={product}
+                      viewMode={viewMode}
+                      onToggleFavorite={toggleFavorite}
+                      isFavorite={favorites.includes(product.id)}
+                    />
                   </div>
                 ))}
               </div>
@@ -668,19 +717,49 @@ export default function AllProducts() {
             {totalPages > 1 && (
               <div className="flex justify-center mt-12">
                 <div className="flex items-center gap-2 p-2 bg-white rounded-xl shadow-sm">
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setPage(i + 1)}
-                      className={`w-10 h-10 rounded-lg font-medium transition-all duration-200 ${
-                        page === i + 1
-                          ? "bg-blue-600 text-white shadow-md"
-                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
+                  <button
+                    onClick={() => setPage(Math.max(1, page - 1))}
+                    disabled={page === 1}
+                    className="w-10 h-10 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  >
+                    &lt;
+                  </button>
+
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    // Show pages around current page
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (page <= 3) {
+                      pageNum = i + 1;
+                    } else if (page >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = page - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setPage(pageNum)}
+                        className={`w-10 h-10 rounded-lg font-medium transition-all duration-200 ${
+                          page === pageNum
+                            ? "bg-blue-600 text-white shadow-md"
+                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => setPage(Math.min(totalPages, page + 1))}
+                    disabled={page === totalPages}
+                    className="w-10 h-10 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  >
+                    &gt;
+                  </button>
                 </div>
               </div>
             )}
@@ -707,13 +786,6 @@ export default function AllProducts() {
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-
-        .line-clamp-3 {
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
           -webkit-box-orient: vertical;
           overflow: hidden;
         }

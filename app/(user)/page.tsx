@@ -7,7 +7,6 @@ import ShopByCategory from "./shop-by-category/page";
 const HomePage = () => {
   return (
     <div>
-      <EcommerceNavbar />
       <BannerCarousel />
 
       <TrendingProducts />
