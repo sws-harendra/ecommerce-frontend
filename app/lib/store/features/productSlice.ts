@@ -108,7 +108,7 @@ export const getTrendingProduct = createAsyncThunk(
 
 // Initial State
 const initialState: ProductState = {
-  products: [],
+  products: null,
   product: null,
   trendingProducts: [],
   status: "idle", // idle | loading | succeeded | failed
@@ -131,6 +131,8 @@ const productSlice = createSlice({
         state.status = "loading";
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
+        console.log(action.payload);
+
         state.status = "succeeded";
         state.products = action.payload;
       })
@@ -170,7 +172,18 @@ const productSlice = createSlice({
       })
       .addCase(createProduct.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products.push(action.payload);
+        const newProduct = action.payload.product;
+
+        if (Array.isArray(state.products)) {
+          // case: state.products is just an array
+          state.products.push(newProduct);
+        } else if (state.products && Array.isArray(state.products.products)) {
+          // case: state.products is object { products: [], total: X }
+          state.products.products = [newProduct, ...state.products.products];
+        } else {
+          // first product ever
+          state.products = { products: [newProduct], total: 1 };
+        }
       })
       .addCase(createProduct.rejected, (state, action) => {
         state.status = "failed";

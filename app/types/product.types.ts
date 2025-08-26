@@ -15,6 +15,7 @@ export interface Product {
   createdAt: Date;
   updatedAt: Date;
   Category: Category;
+  paymentMethods: string;
 }
 
 export interface Category {
@@ -22,10 +23,18 @@ export interface Category {
   name: string;
   image: string;
 }
-export interface ProductState {
+export interface ProductApiResponse {
+  success: boolean;
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
   products: Product[];
+}
+
+export interface ProductState {
+  products: ProductApiResponse | null; // whole API response
   product: Product | null;
   trendingProducts: Product[];
   status: "idle" | "loading" | "succeeded" | "failed";
-  error: string | null | unknown; // ✅ allow string or null
+  error: string | null | unknown;
 }

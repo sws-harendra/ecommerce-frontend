@@ -5,12 +5,16 @@ import authReducer from "./features/authSlice";
 import productReducer from "./features/productSlice";
 import bannerReducer from "./features/bannerSlice";
 import cartReducer from "./features/cartSlice";
+import orderReducer from "./features/orderSlice";
+import dashboardReducer from "./features/dashboardSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     product: productReducer,
     banners: bannerReducer,
     cart: cartReducer,
+    order: orderReducer,
+    dashboard: dashboardReducer,
   },
 });
 

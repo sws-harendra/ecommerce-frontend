@@ -204,14 +204,16 @@ export default function EcommerceNavbar() {
                     >
                       My Account
                     </a>
-                    <a
-                      href="#"
+                    <Link
+                      href="/orderhistory"
+                      onClick={() => setIsProfileOpen(false)}
                       className="block px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
                     >
                       Order History
-                    </a>
+                    </Link>
                     <a
                       href="#"
+                      onClick={() => setIsProfileOpen(false)}
                       className="block px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
                     >
                       Settings

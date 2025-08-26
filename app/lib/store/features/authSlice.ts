@@ -82,6 +82,29 @@ export const resendOtp = createAsyncThunk(
     }
   }
 );
+// auth.slice.ts
+export const updateUserInfo = createAsyncThunk(
+  "auth/updateUserInfo",
+  async (
+    data: {
+      fullname?: string;
+      email?: string;
+      phoneNumber?: string;
+      password?: string;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await authService.updateUserInfo(data);
+      return response.user; // backend returns { success, user }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        return rejectWithValue(err.message);
+      }
+      return rejectWithValue("User update failed");
+    }
+  }
+);
 
 export const getUserDetails = createAsyncThunk(
   "auth/getUserDetails",
@@ -95,6 +118,40 @@ export const getUserDetails = createAsyncThunk(
         return rejectWithValue(err.message);
       }
       return rejectWithValue("Email login failed");
+    }
+  }
+);
+
+export const addUserAddress = createAsyncThunk(
+  "auth/addUserAddress",
+  async (
+    address: {
+      addressType: string;
+      address1: string;
+      address2?: string;
+      city: string;
+      state?: string;
+      zipCode: string;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await authService.addUserAddress(address);
+      return response.address; // backend returns { success, address }
+    } catch (err: any) {
+      return rejectWithValue(err.message || "Failed to add address");
+    }
+  }
+);
+
+export const deleteUserAddress = createAsyncThunk(
+  "auth/deleteUserAddress",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await authService.deleteUserAddress(id);
+      return response.addresses; // backend returns updated addresses
+    } catch (err: any) {
+      return rejectWithValue(err.message || "Failed to delete address");
     }
   }
 );
@@ -127,6 +184,8 @@ const initialState: AuthState = {
   phoneNumber: "",
   otpSent: false,
   role: "user",
+  addressStatus: "idle",
+  addressError: null,
 };
 
 const authSlice = createSlice({
@@ -235,6 +294,53 @@ const authSlice = createSlice({
         state.status = "failed";
         state.error = action.payload;
         state.isAuthenticated = false;
+      })
+      // for updating profile
+
+      .addCase(addUserAddress.pending, (state) => {
+        state.addressStatus = "loading";
+        state.addressError = null;
+      })
+      .addCase(addUserAddress.fulfilled, (state, action) => {
+        console.log("actionpayload", action.payload);
+        if (state.user) {
+          // append the new address to user.addresses
+          state.user.addresses = [
+            ...(state.user.addresses || []),
+            action.payload,
+          ];
+        }
+        state.addressStatus = "succeeded";
+      })
+      .addCase(addUserAddress.rejected, (state, action) => {
+        state.addressStatus = "failed";
+        state.addressError = action.payload as string;
+      })
+      .addCase(updateUserInfo.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(updateUserInfo.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.user = action.payload; // update local state with updated user
+      })
+      .addCase(updateUserInfo.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      })
+      .addCase(deleteUserAddress.pending, (state) => {
+        state.addressStatus = "loading";
+        state.addressError = null;
+      })
+      .addCase(deleteUserAddress.fulfilled, (state, action) => {
+        if (state.user) {
+          state.user.addresses = action.payload;
+        }
+        state.addressStatus = "succeeded";
+      })
+      .addCase(deleteUserAddress.rejected, (state, action) => {
+        state.addressStatus = "failed";
+        state.addressError = action.payload as string;
       })
 
       // Logout

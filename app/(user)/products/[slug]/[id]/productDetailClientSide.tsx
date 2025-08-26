@@ -256,6 +256,7 @@ export default function ProductDetailClient({
                       price: parseFloat(product.discountPrice),
                       quantity: 1,
                       imageUrl: product.images?.[0] || "",
+                      paymentMethods: product.paymentMethods,
                     })
                   );
                 }}

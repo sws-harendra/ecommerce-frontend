@@ -30,15 +30,34 @@ export interface AuthState {
   otpSent: boolean;
   registerStatus?: "idle" | "loading" | "succeeded" | "failed";
   role: "user" | "admin";
+  addressStatus?: "idle" | "loading" | "succeeded" | "failed";
+  addressError?: string | null;
 }
 
 // Response DTOs
+export interface Address {
+  id: string;
+  addressType: string;
+  address1: string;
+  address2?: string;
+  city: string;
+  state?: string;
+  country?: string;
+  zipCode: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface User {
   id: string;
   email: string;
   fullname: string;
   role: "user" | "admin";
   phoneNumber?: string;
+  avatar?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  addresses: Address[]; // ✅ include addresses
 }
 
 export interface AuthResponse {

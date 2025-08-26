@@ -25,33 +25,32 @@ import {
   clearCart,
   selectCartItemsCount,
 } from "@/app/lib/store/features/cartSlice";
-import { RootState, useAppSelector } from "@/app/lib/store/store";
+import {
+  RootState,
+  useAppDispatch,
+  useAppSelector,
+} from "@/app/lib/store/store";
 import Link from "next/link";
 import { getImageUrl } from "@/app/utils/getImageUrl";
-
-interface Address {
-  id: string;
-  type: "home" | "work" | "other";
-  name: string;
-  address: string;
-  apartment?: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  isDefault: boolean;
-}
+import {
+  addUserAddress,
+  updateUserInfo,
+} from "@/app/lib/store/features/authSlice";
+import Loader from "@/app/commonComponents/loader";
+import { Address } from "@/app/types/auth.types";
+import { states } from "@/app/utils/indianStates";
+import { placeOrder } from "@/app/lib/store/features/orderSlice";
 
 interface FormData {
   email: string;
   fullname: string;
-  // lastName: string;
   phone: string;
   selectedAddressId: string;
   newAddress: {
     type: "home" | "work" | "other";
-    name: string;
-    address: string;
-    apartment: string;
+    // name: string; // optional (not in backend yet, but fine to keep as label)
+    address1: string; // ✅ should be address1
+    address2: string;
     city: string;
     state: string;
     zipCode: string;
@@ -61,6 +60,7 @@ interface FormData {
   expiryDate: string;
   cvv: string;
   saveInfo: boolean;
+  paymentMethods: string;
 }
 
 interface FormErrors {
@@ -69,55 +69,50 @@ interface FormErrors {
 
 const CheckoutPage = () => {
   const router = useRouter();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { items } = useSelector(selectCart);
   const totalItems = useSelector(selectCartItemsCount);
-  const { isAuthenticated, status, user } = useAppSelector(
+  const { isAuthenticated, status, user, addressStatus } = useAppSelector(
     (state: RootState) => state.auth
   );
 
   // Mock addresses - In real app, fetch from profile slice
-  const [savedAddresses, setSavedAddresses] = useState<Address[]>([
-    {
-      id: "1",
-      type: "home",
-      name: "Home",
-      address: "123 Main Street",
-      apartment: "Apt 2B",
-      city: "New York",
-      state: "NY",
-      zipCode: "10001",
-      isDefault: true,
-    },
-    {
-      id: "2",
-      type: "work",
-      name: "Work",
-      address: "456 Business Ave",
-      city: "New York",
-      state: "NY",
-      zipCode: "10002",
-      isDefault: false,
-    },
-  ]);
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
   const isLoading = status === "loading";
+  const addressLoading = addressStatus == "loading";
   const [activeStep, setActiveStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string>("");
   const [showAddressForm, setShowAddressForm] = useState(false);
+  useEffect(() => {
+    if (user && user.addresses) {
+      setSavedAddresses(
+        user.addresses.map((addr: any) => ({
+          id: addr.id,
+          addressType: addr.addressType,
+          name: addr.addressType, // or addr.label if you add one
+          address1: addr.address1,
+          address2: addr.address2,
+          city: addr.city,
+          state: addr.state,
+          zipCode: addr.zipCode,
+          isDefault: false, // you can add a flag in backend later
+        }))
+      );
+    }
+  }, [user]);
 
   const [formData, setFormData] = useState<FormData>({
-    email: user?.email || "",
-    fullname: user?.fullname || "",
-    // lastName: user?.lastName || "",
-    phone: user?.phoneNumber || "",
-    selectedAddressId: savedAddresses.find((addr) => addr.isDefault)?.id || "",
+    email: "",
+    fullname: "",
+    phone: "",
+    selectedAddressId:
+      savedAddresses.find((addr) => addr.addressType === "home")?.id || "",
     newAddress: {
       type: "home",
-      name: "",
-      address: "",
-      apartment: "",
+      address1: "",
+      address2: "",
       city: "",
       state: "",
       zipCode: "",
@@ -126,8 +121,20 @@ const CheckoutPage = () => {
     cardName: "",
     expiryDate: "",
     cvv: "",
+    paymentMethods: "",
     saveInfo: false,
   });
+  // 🔥 Hydrate from Redux user whenever it becomes available
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        email: user.email || "",
+        fullname: user.fullname || "",
+        phone: user.phoneNumber || "",
+      }));
+    }
+  }, [user]);
 
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -182,6 +189,8 @@ const CheckoutPage = () => {
 
       if (!formData.fullname) newErrors.fullname = "First name is required";
       if (!formData.phone) newErrors.phone = "Phone number is required";
+      if (formData.phone && formData.phone.length < 10)
+        newErrors.phone = "Phone number must be 10 digits";
     }
 
     if (step === 2) {
@@ -189,10 +198,10 @@ const CheckoutPage = () => {
         newErrors.address = "Please select an address or add a new one";
       }
       if (showAddressForm) {
-        if (!formData.newAddress.name)
-          newErrors["newAddress.name"] = "Address name is required";
-        if (!formData.newAddress.address)
-          newErrors["newAddress.address"] = "Address is required";
+        if (!formData.newAddress.address1)
+          newErrors["newAddress.address1"] = "Street Address is required";
+        if (!formData.newAddress.address2)
+          newErrors["newAddress.address2"] = "Address2 is required";
         if (!formData.newAddress.city)
           newErrors["newAddress.city"] = "City is required";
         if (!formData.newAddress.state)
@@ -202,33 +211,64 @@ const CheckoutPage = () => {
       }
     }
 
-    if (step === 3) {
-      if (!formData.cardNumber)
-        newErrors.cardNumber = "Card number is required";
-      else if (!/^\d{16}$/.test(formData.cardNumber.replace(/\s/g, ""))) {
-        newErrors.cardNumber = "Card number must be 16 digits";
-      }
+    // if (step === 3) {
+    //   if (!formData.cardNumber)
+    //     newErrors.cardNumber = "Card number is required";
+    //   else if (!/^\d{16}$/.test(formData.cardNumber.replace(/\s/g, ""))) {
+    //     newErrors.cardNumber = "Card number must be 16 digits";
+    //   }
 
-      if (!formData.cardName) newErrors.cardName = "Name on card is required";
+    //   if (!formData.cardName) newErrors.cardName = "Name on card is required";
 
-      if (!formData.expiryDate)
-        newErrors.expiryDate = "Expiry date is required";
-      else if (!/^\d{2}\/\d{2}$/.test(formData.expiryDate)) {
-        newErrors.expiryDate = "Format must be MM/YY";
-      }
+    //   if (!formData.expiryDate)
+    //     newErrors.expiryDate = "Expiry date is required";
+    //   else if (!/^\d{2}\/\d{2}$/.test(formData.expiryDate)) {
+    //     newErrors.expiryDate = "Format must be MM/YY";
+    //   }
 
-      if (!formData.cvv) newErrors.cvv = "CVV is required";
-      else if (!/^\d{3,4}$/.test(formData.cvv))
-        newErrors.cvv = "CVV must be 3 or 4 digits";
-    }
+    //   if (!formData.cvv) newErrors.cvv = "CVV is required";
+    //   else if (!/^\d{3,4}$/.test(formData.cvv))
+    //     newErrors.cvv = "CVV must be 3 or 4 digits";
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNextStep = () => {
+  // const handleNextStep = () => {
+  //   if (validateStep(activeStep)) {
+  //     setActiveStep(activeStep + 1);
+  //   }
+  // };
+  const handleNextStep = async () => {
     if (validateStep(activeStep)) {
-      setActiveStep(activeStep + 1);
+      try {
+        if (activeStep === 1) {
+          if (!user) {
+            console.error("No user data available");
+            return;
+          }
+
+          const updates: any = {};
+          if (formData.fullname !== user.fullname)
+            updates.fullname = formData.fullname;
+          if (formData.email !== user.email) updates.email = formData.email;
+          if (formData.phone !== user.phoneNumber)
+            updates.phoneNumber = formData.phone;
+
+          if (Object.keys(updates).length > 0) {
+            await dispatch(
+              updateUserInfo({
+                ...updates,
+              })
+            ).unwrap();
+          }
+        }
+
+        setActiveStep(activeStep + 1);
+      } catch (err) {
+        console.error("Update failed:", err);
+      }
     }
   };
 
@@ -241,44 +281,57 @@ const CheckoutPage = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (validateStep(3)) {
-      setIsProcessing(true);
+    console.log("handlePlaceOrder");
+    // if (validateStep(3)) {
+    setIsProcessing(true);
 
+    try {
+      await dispatch(
+        placeOrder({
+          userId: user.id,
+          addressId: formData.selectedAddressId,
+          items: items.map((i) => ({
+            productId: i.id,
+            quantity: i.quantity,
+          })),
+          paymentMethod: formData.paymentMethods,
+        })
+      ).unwrap();
+
+      setOrderSuccess(true);
+      dispatch(clearCart());
+    } catch (error) {
+      console.error("Order placement failed:", error);
+      alert("Order placement failed. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+    // }
+  };
+  const handleAddNewAddress = async () => {
+    if (validateStep(2)) {
       try {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await dispatch(
+          addUserAddress({
+            addressType: formData.newAddress.type,
+            address1: formData.newAddress.address1,
+            address2: formData.newAddress.address2,
+            city: formData.newAddress.city,
+            state: formData.newAddress.state,
+            zipCode: formData.newAddress.zipCode,
+          })
+        ).unwrap();
 
-        const newOrderId = generateOrderId();
-        setOrderId(newOrderId);
-        setOrderSuccess(true);
-        dispatch(clearCart());
-      } catch (error) {
-        console.error("Order placement failed:", error);
-        alert("Order placement failed. Please try again.");
-      } finally {
-        setIsProcessing(false);
+        setShowAddressForm(false);
+      } catch (err) {
+        console.error("Failed to add address:", err);
       }
     }
   };
 
-  const handleAddNewAddress = () => {
-    if (validateStep(2)) {
-      const newAddress: Address = {
-        id: Date.now().toString(),
-        type: formData.newAddress.type,
-        name: formData.newAddress.name,
-        address: formData.newAddress.address,
-        apartment: formData.newAddress.apartment,
-        city: formData.newAddress.city,
-        state: formData.newAddress.state,
-        zipCode: formData.newAddress.zipCode,
-        isDefault: savedAddresses.length === 0,
-      };
-
-      setSavedAddresses([...savedAddresses, newAddress]);
-      setFormData({ ...formData, selectedAddressId: newAddress.id });
-      setShowAddressForm(false);
-    }
-  };
+  if (isLoading || addressLoading) {
+    return <Loader />;
+  }
 
   if (items.length === 0 && !orderSuccess) {
     return (
@@ -527,7 +580,13 @@ const CheckoutPage = () => {
 
                 <div className="flex justify-end">
                   <button
-                    onClick={handleNextStep}
+                    onClick={() => {
+                      if (isAuthenticated) {
+                        handleNextStep(); // proceed
+                      } else {
+                        router.push("/authentication/login"); // go to login if not logged in
+                      }
+                    }}
                     className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-2xl font-semibold hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                   >
                     Continue to Shipping
@@ -573,26 +632,21 @@ const CheckoutPage = () => {
                           >
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center">
-                                {address.type === "home" ? (
+                                {address.addressType === "home" ? (
                                   <Home className="w-5 h-5 mr-2 text-blue-600" />
-                                ) : address.type === "work" ? (
+                                ) : address.addressType === "work" ? (
                                   <Building2 className="w-5 h-5 mr-2 text-blue-600" />
                                 ) : (
                                   <MapPin className="w-5 h-5 mr-2 text-blue-600" />
                                 )}
                                 <span className="font-semibold text-gray-800">
-                                  {address.name}
+                                  {address.addressType}
                                 </span>
                               </div>
-                              {address.isDefault && (
-                                <span className="bg-green-100 text-green-800 px-2 py-1 rounded-lg text-xs font-medium">
-                                  Default
-                                </span>
-                              )}
                             </div>
                             <p className="text-gray-600 text-sm">
-                              {address.address}
-                              {address.apartment && `, ${address.apartment}`}
+                              {address.address1}
+                              {address.address2 && `, ${address.address2}`}
                               <br />
                               {address.city}, {address.state} {address.zipCode}
                             </p>
@@ -643,55 +697,33 @@ const CheckoutPage = () => {
                           <option value="work">Work</option>
                           <option value="other">Other</option>
                         </select>
-                      </div>
-
-                      <div>
+                      </div>{" "}
+                      <div className="mb-6">
                         <label className="block text-sm font-semibold text-gray-700 mb-3">
-                          Address Name *
+                          Street Address *
                         </label>
                         <input
                           type="text"
-                          name="newAddress.name"
-                          value={formData.newAddress.name}
+                          name="newAddress.address1"
+                          value={formData.newAddress.address1}
                           onChange={handleInputChange}
+                          placeholder="Enter your street address"
                           className={`w-full px-4 py-4 border-2 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
-                            errors["newAddress.name"]
+                            errors["newAddress.address1"]
                               ? "border-red-400 bg-red-50"
                               : "border-gray-200 hover:border-gray-300"
                           }`}
-                          placeholder="e.g., Home, Office, etc."
                         />
-                        {errors["newAddress.name"] && (
+
+                        {errors["newAddress.address1"] && (
                           <p className="mt-2 text-sm text-red-600 font-medium">
-                            {errors["newAddress.name"]}
+                            {errors["newAddress.address1"]}
                           </p>
                         )}
                       </div>
                     </div>
 
                     {/* Rest of the address form fields */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">
-                        Street Address *
-                      </label>
-                      <input
-                        type="text"
-                        name="newAddress.address"
-                        value={formData.newAddress.address}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-4 border-2 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
-                          errors["newAddress.address"]
-                            ? "border-red-400 bg-red-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                        placeholder="Enter your street address"
-                      />
-                      {errors["newAddress.address"] && (
-                        <p className="mt-2 text-sm text-red-600 font-medium">
-                          {errors["newAddress.address"]}
-                        </p>
-                      )}
-                    </div>
 
                     <div className="mb-6">
                       <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -699,12 +731,21 @@ const CheckoutPage = () => {
                       </label>
                       <input
                         type="text"
-                        name="newAddress.apartment"
-                        value={formData.newAddress.apartment}
+                        name="newAddress.address2"
+                        value={formData.newAddress.address2}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-4 border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 hover:border-gray-300"
                         placeholder="Apartment, suite, floor, etc."
-                      />
+                        className={`w-full px-4 py-4 border-2 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
+                          errors["newAddress.address2"]
+                            ? "border-red-400 bg-red-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      />{" "}
+                      {errors["newAddress.address2"] && (
+                        <p className="mt-2 text-sm text-red-600 font-medium">
+                          {errors["newAddress.address2"]}
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -746,11 +787,11 @@ const CheckoutPage = () => {
                           }`}
                         >
                           <option value="">Select State</option>
-                          <option value="CA">California</option>
-                          <option value="TX">Texas</option>
-                          <option value="FL">Florida</option>
-                          <option value="NY">New York</option>
-                          <option value="IL">Illinois</option>
+                          {states.map((state) => (
+                            <option key={state.code} value={state.code}>
+                              {state.name}
+                            </option>
+                          ))}
                         </select>
                         {errors["newAddress.state"] && (
                           <p className="mt-2 text-sm text-red-600 font-medium">
@@ -817,128 +858,70 @@ const CheckoutPage = () => {
             {/* Step 3: Payment Information */}
             {activeStep === 3 && (
               <div className="bg-white rounded-3xl shadow-xl p-8 mb-8 border border-gray-100">
-                <div className="flex items-center mb-8">
+                <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mr-4">
                     <CreditCard className="w-6 h-6 text-blue-600" />
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900">
-                    Payment Information
+                    Select Payment Method
                   </h2>
                 </div>
 
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Card Number *
-                  </label>
-                  <input
-                    type="text"
-                    name="cardNumber"
-                    value={formData.cardNumber}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-4 border-2 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
-                      errors.cardNumber
-                        ? "border-red-400 bg-red-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                    placeholder="1234 5678 9012 3456"
-                    maxLength={19}
-                  />
-                  {errors.cardNumber && (
-                    <p className="mt-2 text-sm text-red-600 font-medium">
-                      {errors.cardNumber}
-                    </p>
-                  )}
-                </div>
+                {/* Determine allowed payment methods */}
+                {(() => {
+                  const allCod = items.every(
+                    (item) =>
+                      item.paymentMethods === "cod" ||
+                      item.paymentMethods === "both"
+                  );
+                  const allOnline = items.every(
+                    (item) =>
+                      item.paymentMethods === "online" ||
+                      item.paymentMethods === "both"
+                  );
+                  return (
+                    <div className="flex flex-col gap-4 mb-8">
+                      {allCod && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData({ ...formData, paymentMethods: "cod" })
+                          }
+                          className={`w-full text-left p-4 border rounded-2xl transition-colors ${
+                            formData.paymentMethods === "cod"
+                              ? "border-blue-600 bg-blue-50"
+                              : "border-gray-300 hover:border-blue-500"
+                          }`}
+                        >
+                          <span className="text-gray-800 font-medium">
+                            Cash on Delivery
+                          </span>
+                        </button>
+                      )}
 
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Name on Card *
-                  </label>
-                  <input
-                    type="text"
-                    name="cardName"
-                    value={formData.cardName}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-4 border-2 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
-                      errors.cardName
-                        ? "border-red-400 bg-red-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                    placeholder="John Doe"
-                  />
-                  {errors.cardName && (
-                    <p className="mt-2 text-sm text-red-600 font-medium">
-                      {errors.cardName}
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Expiry Date *
-                    </label>
-                    <input
-                      type="text"
-                      name="expiryDate"
-                      value={formData.expiryDate}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-4 border-2 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
-                        errors.expiryDate
-                          ? "border-red-400 bg-red-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                      placeholder="MM/YY"
-                      maxLength={5}
-                    />
-                    {errors.expiryDate && (
-                      <p className="mt-2 text-sm text-red-600 font-medium">
-                        {errors.expiryDate}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      CVV *
-                    </label>
-                    <input
-                      type="text"
-                      name="cvv"
-                      value={formData.cvv}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-4 border-2 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
-                        errors.cvv
-                          ? "border-red-400 bg-red-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                      placeholder="123"
-                      maxLength={4}
-                    />
-                    {errors.cvv && (
-                      <p className="mt-2 text-sm text-red-600 font-medium">
-                        {errors.cvv}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center mb-8">
-                  <input
-                    type="checkbox"
-                    id="saveInfo"
-                    name="saveInfo"
-                    checked={formData.saveInfo}
-                    onChange={handleInputChange}
-                    className="w-5 h-5 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                  />
-                  <label
-                    htmlFor="saveInfo"
-                    className="ml-3 block text-sm font-medium text-gray-700"
-                  >
-                    Save payment information for future orders
-                  </label>
-                </div>
+                      {allOnline && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              paymentMethods: "online",
+                            })
+                          }
+                          className={`w-full text-left p-4 border rounded-2xl transition-colors ${
+                            formData.paymentMethods === "online"
+                              ? "border-blue-600 bg-blue-50"
+                              : "border-gray-300 hover:border-blue-500"
+                          }`}
+                        >
+                          <span className="text-gray-800 font-medium">
+                            Online Payment
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 <div className="flex items-center justify-between">
                   <button
@@ -948,9 +931,10 @@ const CheckoutPage = () => {
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Shipping
                   </button>
+
                   <button
-                    onClick={handlePlaceOrder}
-                    disabled={isProcessing}
+                    onClick={() => handlePlaceOrder()}
+                    disabled={isProcessing || !formData.paymentMethods}
                     className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-2xl font-semibold hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     {isProcessing ? (

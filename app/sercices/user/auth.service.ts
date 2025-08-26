@@ -38,6 +38,37 @@ export const authService = {
     const response = await axiosInstance.get("/user/getuser");
     return response.data;
   },
+  updateUserInfo: async (data: {
+    fullname?: string;
+    email?: string;
+    phoneNumber?: string;
+    password?: string;
+  }) => {
+    const response = await axiosInstance.put("/user/update-user-info", data);
+    return response.data;
+  },
+  addUserAddress: async (address: {
+    addressType: string;
+    address1: string;
+    address2?: string;
+    city: string;
+    state?: string;
+    zipCode: string;
+  }) => {
+    const response = await axiosInstance.put(
+      "/user/update-user-addresses",
+      address
+    );
+    console.log("resssppinse==>", response.data, response.data);
+    return response.data; // { success, address }
+  },
+
+  deleteUserAddress: async (id: string) => {
+    const response = await axiosInstance.delete(
+      `/user/delete-user-address/${id}`
+    );
+    return response.data; // { success, addresses }
+  },
 
   // Logout
   logout: async () => {

@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { getImageUrl } from "@/app/utils/getImageUrl";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { slugify } from "@/app/utils/slugify";
 
 // Product Card Component
 interface ProductCardProps {
@@ -46,180 +48,182 @@ const ProductCard: React.FC<ProductCardProps> = ({
       : `https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop&crop=center`;
 
   return (
-    <div
-      className={`group relative bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 ${
-        viewMode === "list" ? "flex items-start p-4" : "flex flex-col"
-      }`}
-    >
-      {/* Discount Badge */}
-      {discountPercent > 0 && (
-        <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-red-500 to-pink-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-md">
-          {discountPercent}% OFF
-        </div>
-      )}
-
-      {/* Favorite Button */}
-      <button
-        onClick={() => onToggleFavorite(product.id)}
-        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm transition-all duration-300 hover:bg-white hover:scale-110 shadow-sm"
-      >
-        <Heart
-          size={18}
-          className={`transition-colors duration-300 ${
-            isFavorite ? "text-red-500 fill-red-500" : "text-gray-400"
-          }`}
-        />
-      </button>
-
-      {/* Stock Badge */}
-      {product.stock <= 5 && product.stock > 0 && (
-        <div className="absolute top-12 left-3 z-10 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-          Only {product.stock} left!
-        </div>
-      )}
-
-      {product.sold_out === 1 && (
-        <div className="absolute top-12 left-3 z-10 bg-gray-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-          Sold Out
-        </div>
-      )}
-
-      {/* Product Image */}
+    <Link href={`/products/${slugify(product.name)}/${product.id}`}>
       <div
-        className={`relative overflow-hidden ${
-          viewMode === "list"
-            ? "w-40 h-40 rounded-xl mr-4 flex-shrink-0"
-            : "aspect-square w-full"
+        className={`group relative bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 ${
+          viewMode === "list" ? "flex items-start p-4" : "flex flex-col"
         }`}
       >
-        <img
-          src={productImage}
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          onError={(e) => {
-            e.currentTarget.src = `https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop&crop=center`;
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        {/* Discount Badge */}
+        {discountPercent > 0 && (
+          <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-red-500 to-pink-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-md">
+            {discountPercent}% OFF
+          </div>
+        )}
 
-        {/* Quick Action Buttons */}
-        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white hover:scale-105 transition-all duration-200">
-            <Eye size={16} className="text-gray-700" />
-          </button>
-          <button
-            className={`bg-blue-600 text-white p-2 rounded-full shadow-md hover:bg-blue-700 hover:scale-105 transition-all duration-200 flex items-center justify-center ${
-              product.sold_out === 1 ? "opacity-50 cursor-not-allowed" : ""
+        {/* Favorite Button */}
+        <button
+          onClick={() => onToggleFavorite(product.id)}
+          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm transition-all duration-300 hover:bg-white hover:scale-110 shadow-sm"
+        >
+          <Heart
+            size={18}
+            className={`transition-colors duration-300 ${
+              isFavorite ? "text-red-500 fill-red-500" : "text-gray-400"
             }`}
-            disabled={product.sold_out === 1}
-          >
-            <ShoppingCart size={16} />
-          </button>
-        </div>
-      </div>
+          />
+        </button>
 
-      {/* Product Info */}
-      <div
-        className={`${viewMode === "list" ? "flex-1 py-2" : "p-4 space-y-3"}`}
-      >
-        {/* Category Badge */}
-        <span className="inline-block px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-full capitalize mb-2">
-          {product.Category?.name || "General"}
-        </span>
+        {/* Stock Badge */}
+        {product.stock <= 5 && product.stock > 0 && (
+          <div className="absolute top-12 left-3 z-10 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+            Only {product.stock} left!
+          </div>
+        )}
 
-        {/* Product Name */}
-        <h3
-          className={`font-medium text-gray-800 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2 ${
-            viewMode === "list" ? "text-lg" : "text-sm leading-tight"
+        {product.sold_out === 1 && (
+          <div className="absolute top-12 left-3 z-10 bg-gray-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+            Sold Out
+          </div>
+        )}
+
+        {/* Product Image */}
+        <div
+          className={`relative overflow-hidden ${
+            viewMode === "list"
+              ? "w-40 h-40 rounded-xl mr-4 flex-shrink-0"
+              : "aspect-square w-full"
           }`}
         >
-          {product.name}
-        </h3>
+          <img
+            src={productImage}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            onError={(e) => {
+              e.currentTarget.src = `https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop&crop=center`;
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        {/* Description - Only show in list view */}
-        {viewMode === "list" && (
-          <p className="text-gray-600 mb-3 text-sm line-clamp-2">
-            {product.description}
-          </p>
-        )}
-
-        {/* Rating */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-1">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                size={12}
-                className={`${
-                  i < 4 // Using a fixed 4-star rating for now
-                    ? "text-yellow-400 fill-yellow-400"
-                    : "text-gray-300"
-                }`}
-              />
-            ))}
-            <span className="text-xs text-gray-600 ml-1">4.0</span>
+          {/* Quick Action Buttons */}
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white hover:scale-105 transition-all duration-200">
+              <Eye size={16} className="text-gray-700" />
+            </button>
+            <button
+              className={`bg-blue-600 text-white p-2 rounded-full shadow-md hover:bg-blue-700 hover:scale-105 transition-all duration-200 flex items-center justify-center ${
+                product.sold_out === 1 ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={product.sold_out === 1}
+            >
+              <ShoppingCart size={16} />
+            </button>
           </div>
+        </div>
 
-          {/* Stock Status */}
-          <span
-            className={`text-xs font-medium ${
-              product.stock > 0 ? "text-green-600" : "text-gray-500"
-            }`}
-          >
-            {product.stock > 0 ? "In Stock" : "Out of Stock"}
+        {/* Product Info */}
+        <div
+          className={`${viewMode === "list" ? "flex-1 py-2" : "p-4 space-y-3"}`}
+        >
+          {/* Category Badge */}
+          <span className="inline-block px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-full capitalize mb-2">
+            {product.Category?.name || "General"}
           </span>
-        </div>
 
-        {/* Price */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-baseline space-x-2">
-            <span className="text-lg font-bold text-gray-900">
-              ₹{discountPrice.toLocaleString()}
-            </span>
-            {originalPrice > discountPrice && (
-              <span className="text-sm text-gray-500 line-through">
-                ₹{originalPrice.toLocaleString()}
-              </span>
-            )}
-          </div>
-
-          {/* Add to Cart Button */}
-          <button
-            className={`p-2 rounded-lg transition-colors duration-200 group/cart ${
-              product.sold_out === 1
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+          {/* Product Name */}
+          <h3
+            className={`font-medium text-gray-800 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2 ${
+              viewMode === "list" ? "text-lg" : "text-sm leading-tight"
             }`}
-            disabled={product.sold_out === 1}
           >
-            <ShoppingCart
-              size={16}
-              className="group-hover/cart:scale-110 transition-transform"
-            />
-          </button>
+            {product.name}
+          </h3>
+
+          {/* Description - Only show in list view */}
+          {viewMode === "list" && (
+            <p className="text-gray-600 mb-3 text-sm line-clamp-2">
+              {product.description}
+            </p>
+          )}
+
+          {/* Rating */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-1">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={12}
+                  className={`${
+                    i < 4 // Using a fixed 4-star rating for now
+                      ? "text-yellow-400 fill-yellow-400"
+                      : "text-gray-300"
+                  }`}
+                />
+              ))}
+              <span className="text-xs text-gray-600 ml-1">4.0</span>
+            </div>
+
+            {/* Stock Status */}
+            <span
+              className={`text-xs font-medium ${
+                product.stock > 0 ? "text-green-600" : "text-gray-500"
+              }`}
+            >
+              {product.stock > 0 ? "In Stock" : "Out of Stock"}
+            </span>
+          </div>
+
+          {/* Price */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-baseline space-x-2">
+              <span className="text-lg font-bold text-gray-900">
+                ₹{discountPrice.toLocaleString()}
+              </span>
+              {originalPrice > discountPrice && (
+                <span className="text-sm text-gray-500 line-through">
+                  ₹{originalPrice.toLocaleString()}
+                </span>
+              )}
+            </div>
+
+            {/* Add to Cart Button */}
+            <button
+              className={`p-2 rounded-lg transition-colors duration-200 group/cart ${
+                product.sold_out === 1
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+              }`}
+              disabled={product.sold_out === 1}
+            >
+              <ShoppingCart
+                size={16}
+                className="group-hover/cart:scale-110 transition-transform"
+              />
+            </button>
+          </div>
+
+          {/* Tags - Only show in list view */}
+          {viewMode === "list" && product.tags && product.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {product.tags.slice(0, 2).map((tag, index) => {
+                const cleanTag = tag.replace(/[\[\]"]/g, "");
+                return (
+                  <span
+                    key={index}
+                    className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"
+                  >
+                    {cleanTag}
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Tags - Only show in list view */}
-        {viewMode === "list" && product.tags && product.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {product.tags.slice(0, 2).map((tag, index) => {
-              const cleanTag = tag.replace(/[\[\]"]/g, "");
-              return (
-                <span
-                  key={index}
-                  className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"
-                >
-                  {cleanTag}
-                </span>
-              );
-            })}
-          </div>
-        )}
+        {/* Shimmer Effect */}
+        <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
       </div>
-
-      {/* Shimmer Effect */}
-      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
-    </div>
+    </Link>
   );
 };
 
