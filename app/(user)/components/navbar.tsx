@@ -22,6 +22,7 @@ import Link from "next/link";
 import { logout } from "@/app/lib/store/features/authSlice";
 import { useRouter } from "next/navigation";
 import { selectCartItemsCount } from "@/app/lib/store/features/cartSlice";
+import { brandName } from "@/app/contants";
 
 export default function EcommerceNavbar() {
   const dispatch = useAppDispatch(); // ✅ typed dispatch
@@ -57,7 +58,7 @@ export default function EcommerceNavbar() {
           <div className="flex items-center space-x-4">
             <span className="flex items-center space-x-1">
               <Zap className="w-4 h-4" />
-              <span>Free shipping on orders $50+</span>
+              <span>Free shipping on orders 5000+</span>
             </span>
           </div>
           <div className="hidden md:flex items-center space-x-4">
@@ -74,7 +75,7 @@ export default function EcommerceNavbar() {
             <div className="flex-shrink-0">
               <Link href="/">
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  SWS
+                  {brandName}
                 </h1>
               </Link>
             </div>
