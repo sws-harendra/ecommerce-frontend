@@ -1,2 +1,2 @@
 export const brandName = "Ecommerce";
-export const serverurl = "http://localhost:8000";
+export const serverurl = process.env.NEXT_PUBLIC_serverurl;
