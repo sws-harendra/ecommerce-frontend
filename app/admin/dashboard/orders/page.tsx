@@ -19,12 +19,14 @@ import {
   CreditCard,
   Users,
   DollarSign,
+  RefreshCcw,
 } from "lucide-react";
 import { fetchOrders } from "@/app/lib/store/features/orderSlice";
 import { useAppDispatch, useAppSelector } from "@/app/lib/store/store";
 import OrderDetailsModal from "../../components/orderDetailModal";
 import SidebarForm from "../../components/SidebarForm";
 import EditOrder from "../../components/editOrder";
+import Loader from "@/app/commonComponents/loader";
 
 // types/order.ts
 export interface Order {
@@ -114,7 +116,6 @@ const OrderManagement = () => {
   const { orders, loading, error, totalCount } = useAppSelector(
     (state: any) => state.order
   );
-
   const [filters, setFilters] = useState<OrderFilters>({
     page: 1,
     limit: 10,
@@ -179,7 +180,7 @@ const OrderManagement = () => {
     },
     {
       title: "Revenue",
-      value: `$${orders
+      value: `${orders
         .reduce((sum: number, order: Order) => sum + order.totalAmount, 0)
         .toFixed(2)}`,
       icon: DollarSign,
@@ -239,22 +240,34 @@ const OrderManagement = () => {
     }
   };
 
+  if (loading) {
+    return <Loader />;
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-indigo-600 rounded-lg">
-              <Package className="h-6 w-6 text-white" />
+        <div className="mb-8 flex justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-indigo-600 rounded-lg">
+                <Package className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Order Management
+              </h1>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Order Management
-            </h1>
+            <p className="text-gray-600">
+              Manage and track all your orders in one place
+            </p>
           </div>
-          <p className="text-gray-600">
-            Manage and track all your orders in one place
-          </p>
+          <button
+            onClick={() => dispatch(fetchOrders(filters))}
+            className="flex items-center gap-2 px-4 py-0 h-12 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/25"
+          >
+            <RefreshCcw size={18} />
+            Refresh
+          </button>
         </div>
 
         {/* Stats Cards */}

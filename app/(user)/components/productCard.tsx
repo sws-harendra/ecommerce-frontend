@@ -12,8 +12,8 @@ interface ProductCardProps {
   originalPrice: string;
   rating: number;
   discount: number;
-  isFavorite: boolean;
-  onToggleFavorite: (id: number) => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: (id: number) => void;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({

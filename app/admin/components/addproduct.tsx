@@ -11,6 +11,7 @@ import {
   Tag,
   DollarSign,
   Archive,
+  TrendingUpIcon,
 } from "lucide-react";
 import { categoryService } from "@/app/sercices/category.service";
 
@@ -31,6 +32,7 @@ const AddProducts = () => {
     originalPrice: "",
     discountPrice: "",
     stock: "",
+    trendingProduct: false, // ✅ added
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -92,6 +94,7 @@ const AddProducts = () => {
       data.append("originalPrice", formData.originalPrice);
       data.append("discountPrice", formData.discountPrice);
       data.append("stock", formData.stock);
+      data.append("trending_product", String(formData.trendingProduct));
 
       images.forEach((file) => data.append("images", file));
 
@@ -106,6 +109,7 @@ const AddProducts = () => {
         originalPrice: "",
         discountPrice: "",
         stock: "",
+        trendingProduct: false,
       });
       setImages([]);
       previewUrls.forEach((url) => URL.revokeObjectURL(url));
@@ -221,7 +225,6 @@ const AddProducts = () => {
                   </div>
                 </div>
               </div>
-
               {/* Pricing & Inventory Section */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3 mb-6">
@@ -290,7 +293,6 @@ const AddProducts = () => {
                   </div>
                 </div>
               </div>
-
               {/* Image Upload Section */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3 mb-6">
@@ -354,6 +356,32 @@ const AddProducts = () => {
                     </div>
                   </div>
                 )}
+              </div>{" "}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-2 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    Trending Product
+                  </h3>
+                </div>
+
+                <div className="relative">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      name="trendingProduct"
+                      checked={formData.trendingProduct}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          trendingProduct: e.target.checked,
+                        })
+                      }
+                      className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700">Mark as Trending</span>
+                  </div>
+                </div>
               </div>
             </div>
 

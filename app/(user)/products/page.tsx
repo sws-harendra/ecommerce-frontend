@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, Suspense } from "react";
 import { useAppDispatch, useAppSelector } from "@/app/lib/store/store";
 import { fetchProducts, Product } from "@/app/lib/store/features/productSlice";
 import { toast } from "sonner";
@@ -418,7 +418,7 @@ const FilterSidebar = ({
   );
 };
 
-export default function AllProducts() {
+function AllProducts() {
   const searchParams = useSearchParams();
   const querySearch = searchParams.get("search") || "";
 
@@ -816,5 +816,13 @@ export default function AllProducts() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function AllProductsSuspense() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AllProducts />
+    </Suspense>
   );
 }

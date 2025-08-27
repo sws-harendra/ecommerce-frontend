@@ -7,6 +7,8 @@ import bannerReducer from "./features/bannerSlice";
 import cartReducer from "./features/cartSlice";
 import orderReducer from "./features/orderSlice";
 import dashboardReducer from "./features/dashboardSlice";
+import userReducer from "./features/userSlice";
+import sectionReducer from "./features/sectionSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -15,7 +17,10 @@ export const store = configureStore({
     cart: cartReducer,
     order: orderReducer,
     dashboard: dashboardReducer,
+    users: userReducer, // all users (admin side)\
+    section: sectionReducer,
   },
+  devTools: process.env.NEXT_PUBLIC_NODE_ENV !== "production", // ✅ disable in prod
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

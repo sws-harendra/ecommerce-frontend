@@ -86,4 +86,22 @@ export const authService = {
     const response = await axiosInstance.post("user/create-user", userData);
     return response.data;
   },
+  getAllUsers: async (params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    const response = await axiosInstance.get("/user/admin-all-users", {
+      params,
+    });
+    return response.data; // { success, totalUsers, currentPage, totalPages, users }
+  },
+  deleteUser: async (id: any) => {
+    const response = await axiosInstance.delete(`/user/delete-user/${id}`);
+    return response.data; // { success, totalUsers, currentPage, totalPages, users }
+  },
 };

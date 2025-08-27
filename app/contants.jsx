@@ -1,2 +1,2 @@
-export const brandName = "LMS";
+export const brandName = "Ecommerce";
 export const serverurl = "http://localhost:8000";

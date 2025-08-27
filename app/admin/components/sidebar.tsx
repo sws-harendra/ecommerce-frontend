@@ -10,15 +10,31 @@ import {
   Menu,
   X,
   LogOut,
+  PackageOpen,
+  Banknote,
+  Section,
 } from "lucide-react";
 import Link from "next/link";
+import { brandName } from "@/app/contants";
 const menuItems = [
   { name: "Dashboard", icon: Home, href: "/admin/dashboard" },
   { name: "Products", icon: Package, href: "/admin/dashboard/products" },
   { name: "Orders", icon: ShoppingBag, href: "/admin/dashboard/orders" },
-  { name: "Customers", icon: Users, href: "/admin/dashboard/customers" },
+  { name: "users", icon: Users, href: "/admin/dashboard/users" },
+  {
+    name: "Banners",
+    icon: Banknote,
+    href: "/admin/dashboard/banner-management",
+  },
+
   //   { name: "Analytics", icon: BarChart2, href: "/admin/dashboard/analytics" },
-  { name: "Settings", icon: Settings, href: "/admin/dashboard/settings" },
+  // { name: "Settings", icon: Settings, href: "/admin/dashboard/settings" },
+  {
+    name: "Section Control",
+    icon: Section,
+    href: "/admin/dashboard/section-control",
+  },
+
   { name: "Logout", icon: LogOut, href: "/authentication/login" },
 ];
 
@@ -47,7 +63,7 @@ export default function Sidebar() {
             !open && "scale-0"
           }`}
         >
-          ShopAdmin
+          {brandName}
         </h1>
 
         {/* Menu Items */}
