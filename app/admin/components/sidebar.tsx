@@ -13,6 +13,7 @@ import {
   PackageOpen,
   Banknote,
   Section,
+  SeparatorVertical,
 } from "lucide-react";
 import Link from "next/link";
 import { brandName } from "@/app/contants";
@@ -33,6 +34,11 @@ const menuItems = [
     name: "Section Control",
     icon: Section,
     href: "/admin/dashboard/section-control",
+  },
+  {
+    name: "Category",
+    icon: SeparatorVertical,
+    href: "/admin/dashboard/category",
   },
 
   { name: "Logout", icon: LogOut, href: "/authentication/login" },

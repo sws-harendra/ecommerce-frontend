@@ -9,6 +9,8 @@ import orderReducer from "./features/orderSlice";
 import dashboardReducer from "./features/dashboardSlice";
 import userReducer from "./features/userSlice";
 import sectionReducer from "./features/sectionSlice";
+import categoryReducer from "./features/categorySlice";
+
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -19,6 +21,7 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     users: userReducer, // all users (admin side)\
     section: sectionReducer,
+    category: categoryReducer,
   },
   devTools: process.env.NEXT_PUBLIC_NODE_ENV !== "production", // ✅ disable in prod
 });
