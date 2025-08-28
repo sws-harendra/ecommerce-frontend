@@ -39,31 +39,53 @@ const OrderHistoryPage = () => {
       setAnimatedCards([]); // Reset animations
       orders.forEach((_, index) => {
         setTimeout(() => {
-          setAnimatedCards((prev): any => [...prev, index]);
+          setAnimatedCards((prev) => [...prev, index]);
         }, index * 200);
       });
     }
   }, [orders]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      return "Invalid Date";
+    }
   };
 
-  const formatAmount = (amount: number) => {
-    // Amount is already in the correct format (29998 = ₹299.98)
-    return `₹${(amount / 100).toLocaleString("en-IN", {
+  const formatAmount = (amount) => {
+    // Check if amount is already in correct format (assuming it's in paisa/cents)
+    // If amount is like 29998, it should display as ₹299.98
+    // If amount is already like 299.98, it should display as ₹299.98
+
+    if (!amount || isNaN(amount)) return "₹0.00";
+
+    let finalAmount;
+    // If amount is greater than 1000 and seems to be in paisa format
+    if (amount > 1000 && Number.isInteger(amount)) {
+      finalAmount = amount / 100;
+    } else {
+      finalAmount = parseFloat(amount);
+    }
+
+    return `₹${finalAmount.toLocaleString("en-IN", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status) => {
+    if (!status || typeof status !== "string") {
+      return <Package className="w-5 h-5 text-gray-500" />;
+    }
+
     switch (status.toLowerCase()) {
       case "delivered":
         return <CheckCircle className="w-5 h-5 text-green-500" />;
@@ -76,7 +98,11 @@ const OrderHistoryPage = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status) => {
+    if (!status || typeof status !== "string") {
+      return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+
     switch (status.toLowerCase()) {
       case "delivered":
         return "bg-green-100 text-green-800 border-green-200";
@@ -89,7 +115,11 @@ const OrderHistoryPage = () => {
     }
   };
 
-  const getPaymentMethodIcon = (method: string) => {
+  const getPaymentMethodIcon = (method) => {
+    if (!method || typeof method !== "string") {
+      return "💰";
+    }
+
     switch (method.toLowerCase()) {
       case "cod":
         return "💵";
@@ -102,11 +132,14 @@ const OrderHistoryPage = () => {
     }
   };
 
-  const handleViewDetails = async (orderId: any) => {
-    await dispatch(fetchOrderById(orderId.toString()));
-
-    setSelectedOrderId(orderId);
-    setIsModalOpen(true);
+  const handleViewDetails = async (orderId) => {
+    try {
+      await dispatch(fetchOrderById(orderId.toString()));
+      setSelectedOrderId(orderId);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+    }
   };
 
   const handleCloseDetails = () => {
@@ -141,13 +174,25 @@ const OrderHistoryPage = () => {
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             Error Loading Orders
           </h3>
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-red-600 mb-4">{error || "Something went wrong"}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => dispatch(fetchUserOrders())}
             className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
           >
             Retry
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Wait for orders to be properly loaded
+  if (!orders) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Initializing...</p>
         </div>
       </div>
     );
@@ -198,8 +243,10 @@ const OrderHistoryPage = () => {
                                 order.status
                               )}`}
                             >
-                              {order.status.charAt(0).toUpperCase() +
-                                order.status.slice(1)}
+                              {order.status && typeof order.status === "string"
+                                ? order.status.charAt(0).toUpperCase() +
+                                  order.status.slice(1)
+                                : "Unknown"}
                             </span>
                           </div>
                           <div className="flex items-center space-x-2 text-gray-600">
@@ -214,7 +261,7 @@ const OrderHistoryPage = () => {
                           <div>
                             <p className="text-sm text-gray-500">Order ID</p>
                             <p className="font-semibold text-gray-900">
-                              #{order.id.toString().padStart(6, "0")}
+                              #{(order.id || 0).toString().padStart(6, "0")}
                             </p>
                           </div>
                           <div>
@@ -232,7 +279,7 @@ const OrderHistoryPage = () => {
                                 {getPaymentMethodIcon(order.paymentMethod)}
                               </span>
                               <span className="text-sm font-medium capitalize">
-                                {order.paymentMethod}
+                                {order.paymentMethod || "N/A"}
                               </span>
                             </div>
                           </div>
@@ -274,7 +321,7 @@ const OrderHistoryPage = () => {
                                         src={getImageUrl(
                                           item.Product.images[0]
                                         )}
-                                        alt={item.Product.name}
+                                        alt={item.Product.name || "Product"}
                                         className="w-full h-full object-cover"
                                         onError={(e) => {
                                           e.target.style.display = "none";
@@ -296,7 +343,7 @@ const OrderHistoryPage = () => {
                                       {item.Product?.name || "Product"}
                                     </p>
                                     <p className="text-xs text-gray-500">
-                                      Qty: {item.quantity}
+                                      Qty: {item.quantity || 0}
                                     </p>
                                   </div>
                                 </div>
@@ -337,7 +384,15 @@ const OrderHistoryPage = () => {
       {isModalOpen && (
         <div>
           {!selectedOrder ? (
-            <div className="p-6 text-center">Loading order details...</div>
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+              <div className="bg-white rounded-2xl shadow-2xl p-8 relative z-10">
+                <div className="flex items-center justify-center">
+                  <Loader className="w-8 h-8 text-purple-600 animate-spin mr-3" />
+                  <span>Loading order details...</span>
+                </div>
+              </div>
+            </div>
           ) : (
             <div
               className={`fixed inset-0 z-50 transition-all duration-300 ${
@@ -370,7 +425,8 @@ const OrderHistoryPage = () => {
                       </div>
                       <div>
                         <h2 className="text-xl font-bold">
-                          Order #{selectedOrder.id.toString().padStart(6, "0")}
+                          Order #
+                          {(selectedOrder.id || 0).toString().padStart(6, "0")}
                         </h2>
                         <p className="opacity-90">
                           {formatDate(selectedOrder.createdAt)}
@@ -395,8 +451,11 @@ const OrderHistoryPage = () => {
                                 selectedOrder.status
                               )}`}
                             >
-                              {selectedOrder.status.charAt(0).toUpperCase() +
-                                selectedOrder.status.slice(1)}
+                              {selectedOrder.status &&
+                              typeof selectedOrder.status === "string"
+                                ? selectedOrder.status.charAt(0).toUpperCase() +
+                                  selectedOrder.status.slice(1)
+                                : "Unknown"}
                             </span>
                           </div>
                         </div>
@@ -412,10 +471,10 @@ const OrderHistoryPage = () => {
                             </span>
                             <div>
                               <p className="font-medium capitalize">
-                                {selectedOrder.paymentMethod}
+                                {selectedOrder.paymentMethod || "N/A"}
                               </p>
                               <p className="text-sm text-green-600 font-medium">
-                                {selectedOrder.paymentStatus}
+                                {selectedOrder.paymentStatus || "N/A"}
                               </p>
                             </div>
                           </div>
@@ -434,26 +493,36 @@ const OrderHistoryPage = () => {
                           <h3 className="font-semibold text-gray-900 mb-2">
                             Delivery Address
                           </h3>
-                          {selectedOrder.OrderAddress && (
+                          {selectedOrder.OrderAddress ? (
                             <div className="text-sm text-gray-600 space-y-1">
                               <div className="flex items-start space-x-2">
                                 <MapPin className="w-4 h-4 mt-0.5 text-gray-400" />
                                 <div>
-                                  <p>{selectedOrder.OrderAddress.address1}</p>
+                                  <p>
+                                    {selectedOrder.OrderAddress.address1 ||
+                                      "N/A"}
+                                  </p>
                                   {selectedOrder.OrderAddress.address2 && (
                                     <p>{selectedOrder.OrderAddress.address2}</p>
                                   )}
                                   <p>
-                                    {selectedOrder.OrderAddress.city} -{" "}
-                                    {selectedOrder.OrderAddress.zipCode}
+                                    {selectedOrder.OrderAddress.city || "N/A"} -{" "}
+                                    {selectedOrder.OrderAddress.zipCode ||
+                                      "N/A"}
                                   </p>
-                                  <p className="text-xs text-blue-600 font-medium capitalize">
-                                    {selectedOrder.OrderAddress.addressType}{" "}
-                                    Address
-                                  </p>
+                                  {selectedOrder.OrderAddress.addressType && (
+                                    <p className="text-xs text-blue-600 font-medium capitalize">
+                                      {selectedOrder.OrderAddress.addressType}{" "}
+                                      Address
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             </div>
+                          ) : (
+                            <p className="text-sm text-gray-500">
+                              No address available
+                            </p>
                           )}
                         </div>
                       </div>
@@ -465,60 +534,69 @@ const OrderHistoryPage = () => {
                         Order Items
                       </h3>
                       <div className="space-y-4">
-                        {selectedOrder.OrderItems?.map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl"
-                          >
-                            <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
-                              {item.Product?.images?.[0] ? (
-                                <img
-                                  src={getImageUrl(item.Product.images[0])}
-                                  alt={item.Product.name}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    e.target.style.display = "none";
-                                    e.target.nextElementSibling.style.display =
-                                      "flex";
-                                  }}
+                        {selectedOrder.OrderItems &&
+                        selectedOrder.OrderItems.length > 0 ? (
+                          selectedOrder.OrderItems.map((item, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl"
+                            >
+                              <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
+                                {item.Product?.images?.[0] ? (
+                                  <img
+                                    src={getImageUrl(item.Product.images[0])}
+                                    alt={item.Product.name || "Product"}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.target.style.display = "none";
+                                      e.target.nextElementSibling.style.display =
+                                        "flex";
+                                    }}
+                                  />
+                                ) : null}
+                                <Package
+                                  className={`w-8 h-8 text-gray-500 ${
+                                    item.Product?.images?.[0] ? "hidden" : ""
+                                  }`}
                                 />
-                              ) : null}
-                              <Package
-                                className={`w-8 h-8 text-gray-500 ${
-                                  item.Product?.images?.[0] ? "hidden" : ""
-                                }`}
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900">
-                                {item.Product?.name || "Product"}
-                              </h4>
-                              <p className="text-sm text-gray-600">
-                                Quantity: {item.quantity}
-                              </p>
-                              <div className="flex items-center space-x-2 mt-1">
-                                <span className="text-lg font-bold text-green-600">
-                                  {formatAmount(item.price)}
-                                </span>
-                                {item.Product?.originalPrice &&
-                                  parseFloat(item.Product.originalPrice) !==
-                                    parseFloat(item.Product.discountPrice) && (
-                                    <span className="text-sm text-gray-500 line-through">
-                                      {formatAmount(
-                                        parseFloat(item.Product.originalPrice) *
-                                          100
-                                      )}
-                                    </span>
-                                  )}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-gray-900">
+                                  {item.Product?.name || "Product"}
+                                </h4>
+                                <p className="text-sm text-gray-600">
+                                  Quantity: {item.quantity || 0}
+                                </p>
+                                <div className="flex items-center space-x-2 mt-1">
+                                  <span className="text-lg font-bold text-green-600">
+                                    {formatAmount(item.price)}
+                                  </span>
+                                  {item.Product?.originalPrice &&
+                                    item.Product?.discountPrice &&
+                                    parseFloat(item.Product.originalPrice) !==
+                                      parseFloat(
+                                        item.Product.discountPrice
+                                      ) && (
+                                      <span className="text-sm text-gray-500 line-through">
+                                        {formatAmount(
+                                          parseFloat(
+                                            item.Product.originalPrice
+                                          ) * 100
+                                        )}
+                                      </span>
+                                    )}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-bold text-gray-900">
+                                  {formatAmount(item.subtotal)}
+                                </p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="font-bold text-gray-900">
-                                {formatAmount(item.subtotal)}
-                              </p>
-                            </div>
-                          </div>
-                        )) || <p className="text-gray-500">No items found</p>}
+                          ))
+                        ) : (
+                          <p className="text-gray-500">No items found</p>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -308,7 +308,7 @@ const CheckoutPage = () => {
       const orderData = {
         amount: total * 100,
         currency: "INR",
-        receipt: `receipt_${total}_${user.id}_${Date.now()}`,
+        receipt: `receipt_${total * 100}_${user.id}_${Date.now()}`,
       };
 
       const response = await orderService.createRazorPayOrder(orderData);
@@ -327,33 +327,23 @@ const CheckoutPage = () => {
           console.log("Payment success:", res);
 
           try {
-            const verifyRes = await fetch("/api/payment/verify", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(res),
-            });
-
-            const data = await verifyRes.json();
-
-            if (data.success) {
-              toast.success("Payment verified!");
-              // Now place order in backend / Redux
-              await dispatch(
-                placeOrder({
-                  userId: user.id,
-                  addressId: formData.selectedAddressId,
-                  items: items.map((i) => ({
-                    productId: i.id,
-                    quantity: i.quantity,
-                  })),
-                  paymentMethod: "online",
-                  razorpayPaymentId: res.razorpay_payment_id,
-                })
-              ).unwrap();
-              // clear cart etc.
-            } else {
-              toast.error("Payment verification failed!");
-            }
+            // Now place order in backend / Redux
+            let newres = await dispatch(
+              placeOrder({
+                userId: user.id,
+                addressId: formData.selectedAddressId,
+                items: items.map((i) => ({
+                  productId: i.id,
+                  quantity: i.quantity,
+                })),
+                paymentMethod: "online",
+                transactionId: res.razorpay_payment_id,
+              })
+            ).unwrap();
+            setOrderId(newres?.orderId);
+            setOrderSuccess(true);
+            dispatch(clearCart());
+            // clear cart etc.
           } catch (err) {
             console.error(err);
             toast.error("Error verifying payment");
@@ -406,10 +396,8 @@ const CheckoutPage = () => {
     }
     // }
   };
-
   const handlePlaceOrderOnline = async () => {
     console.log("handlePlaceOrder");
-    // if (validateStep(3)) {
     setIsProcessing(true);
 
     try {
@@ -418,27 +406,19 @@ const CheckoutPage = () => {
       if (!orderId) {
         throw new Error("Failed to generate order ID");
       }
-      await dispatch(
-        placeOrder({
-          userId: user.id,
-          addressId: formData.selectedAddressId,
-          items: items.map((i) => ({
-            productId: i.id,
-            quantity: i.quantity,
-          })),
-          paymentMethod: formData.paymentMethods,
-        })
-      ).unwrap();
 
-      // setOrderSuccess(true);
-      // dispatch(clearCart());
+      // ❌ REMOVE this part:
+      // await dispatch(
+      //   placeOrder({...})
+      // ).unwrap();
+
+      // ✅ Order will now be placed only after payment success
     } catch (error) {
       console.error("Order placement failed:", error);
       alert("Order placement failed. Please try again.");
     } finally {
       setIsProcessing(false);
     }
-    // }
   };
 
   const handleAddNewAddress = async () => {
@@ -512,12 +492,11 @@ const CheckoutPage = () => {
                 Continue Shopping
               </button>
             </Link>
-            <button
-              onClick={() => setOrderSuccess(false)}
-              className="bg-white text-green-600 border-2 border-green-200 px-8 py-4 rounded-2xl font-semibold hover:bg-green-50 transition-all duration-300"
-            >
-              View Order Details
-            </button>
+            <Link href="/orderhistory">
+              <button className="bg-white text-green-600 border-2 border-green-200 px-8 py-4 rounded-2xl font-semibold hover:bg-green-50 transition-all duration-300">
+                View Order Details
+              </button>
+            </Link>
           </div>
         </div>
       </div>
