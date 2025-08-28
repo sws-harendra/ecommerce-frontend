@@ -292,7 +292,7 @@ const authSlice = createSlice({
       })
       .addCase(getUserDetails.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload;
+        // state.error = action.payload;
         state.isAuthenticated = false;
       })
       // for updating profile
