@@ -39,4 +39,15 @@ export const orderService = {
     const response = await axiosInstance.delete(`/order/${orderId}`);
     return response.data;
   },
+  createRazorPayOrder: async (orderData: {
+    amount: any;
+    currency: string;
+    receipt: string;
+  }) => {
+    const response = await axiosInstance.post(
+      "/razorpay/create_order",
+      orderData
+    );
+    return response.data;
+  },
 };

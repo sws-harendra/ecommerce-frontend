@@ -330,11 +330,11 @@ const CartPage = () => {
                         src={getImageUrl(item.imageUrl)}
                         alt={item.name}
                         className="w-full h-full object-cover group-hover/image:scale-110 transition-transform duration-500"
-                        onError={(e) => {
-                          e.currentTarget.src = `https://via.placeholder.com/112x112/f3f4f6/9ca3af?text=${item.name.charAt(
-                            0
-                          )}`;
-                        }}
+                        // onError={(e) => {
+                        //   e.currentTarget.src = `https://via.placeholder.com/112x112/f3f4f6/9ca3af?text=${item.name.charAt(
+                        //     0
+                        //   )}`;
+                        // }}
                       />
                     </div>
                     <button className="absolute -top-2 -right-2 w-8 h-8 bg-white hover:bg-red-50 rounded-full flex items-center justify-center opacity-0 group-hover/image:opacity-100 transition-all duration-300 shadow-md border border-gray-100">

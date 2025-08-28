@@ -3,6 +3,9 @@ import React from "react";
 import { Star, Heart, ShoppingCart, Eye } from "lucide-react";
 import Link from "next/link";
 import { slugify } from "@/app/utils/slugify";
+import { useAppDispatch } from "@/app/lib/store/store";
+import { addToCart } from "@/app/lib/store/features/cartSlice";
+import { getImageUrl } from "@/app/utils/getImageUrl";
 
 interface ProductCardProps {
   id: number;
@@ -14,6 +17,7 @@ interface ProductCardProps {
   discount: number;
   isFavorite?: boolean;
   onToggleFavorite?: (id: number) => void;
+  paymentMethods: string;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -25,8 +29,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
   rating,
   discount,
   isFavorite,
+  paymentMethods,
   onToggleFavorite,
 }) => {
+  const dispatch = useAppDispatch();
   return (
     <Link href={`/products/${slugify(name)}/${id}`}>
       <div className="group relative bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
@@ -37,8 +43,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Favorite Button */}
-        <button
-          onClick={() => onToggleFavorite(id)}
+        {/* <button
+          // onClick={() => onToggleFavorite(id)}
           className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm transition-all duration-300 hover:bg-white hover:scale-110 shadow-sm"
         >
           <Heart
@@ -47,12 +53,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
               isFavorite ? "text-red-500 fill-red-500" : "text-gray-400"
             }`}
           />
-        </button>
+        </button> */}
 
         {/* Product Image */}
         <div className="relative h-60 overflow-hidden">
           <img
-            src={image}
+            src={getImageUrl(image)}
             alt={name}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
@@ -108,7 +114,23 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </div>
 
             {/* Add to Cart Button - Compact Version */}
-            <button className="bg-blue-100 text-blue-600 p-2 rounded-lg hover:bg-blue-200 transition-colors duration-200 group/cart">
+            <button
+              onClick={(e) => {
+                e.preventDefault(); // prevent navigation
+                e.stopPropagation(); // stop bubbling
+                dispatch(
+                  addToCart({
+                    id: id,
+                    name: name,
+                    price: parseFloat(price),
+                    quantity: 1,
+                    imageUrl: image || "",
+                    paymentMethods: paymentMethods,
+                  })
+                );
+              }}
+              className="bg-blue-100 text-blue-600 p-2 rounded-lg hover:bg-blue-200 transition-colors duration-200 group/cart"
+            >
               <ShoppingCart
                 size={16}
                 className="group-hover/cart:scale-110 transition-transform"

@@ -118,7 +118,7 @@ const TrendingProducts = () => {
               key={product.id}
               id={product.id}
               name={product.name}
-              image={getImageUrl(product.images?.[0])} // ✅ convert filename → full URL
+              image={product.images?.[0]} // ✅ convert filename → full URL
               price={product.discountPrice} // ✅ discounted price
               originalPrice={product.originalPrice}
               rating={product.ratings ?? 0} // ✅ fallback
@@ -126,6 +126,7 @@ const TrendingProducts = () => {
                 product.originalPrice,
                 product.discountPrice
               )}
+              paymentMethods={product.paymentMethods}
               isFavorite={favorites.has(product.id)}
               onToggleFavorite={toggleFavorite}
             />

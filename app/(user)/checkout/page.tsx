@@ -40,7 +40,13 @@ import Loader from "@/app/commonComponents/loader";
 import { Address } from "@/app/types/auth.types";
 import { states } from "@/app/utils/indianStates";
 import { placeOrder } from "@/app/lib/store/features/orderSlice";
-
+import { orderService } from "@/app/sercices/user/order.service";
+import { toast } from "sonner";
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 interface FormData {
   email: string;
   fullname: string;
@@ -275,12 +281,104 @@ const CheckoutPage = () => {
   const handlePrevStep = () => {
     setActiveStep(activeStep - 1);
   };
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (document.querySelector("#razorpay-sdk")) {
+        resolve(true);
+        return;
+      }
 
-  const generateOrderId = () => {
-    return `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+      const script = document.createElement("script");
+      script.id = "razorpay-sdk";
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
   };
 
-  const handlePlaceOrder = async () => {
+  const generateOrderId = async (): Promise<string | null> => {
+    try {
+      // load script first
+      const loaded = await loadRazorpayScript();
+      if (!loaded) {
+        throw new Error("Razorpay SDK failed to load. Check your network.");
+      }
+
+      const orderData = {
+        amount: total * 100,
+        currency: "INR",
+        receipt: `receipt_${total}_${user.id}_${Date.now()}`,
+      };
+
+      const response = await orderService.createRazorPayOrder(orderData);
+      if (!response.success) {
+        throw new Error(response.error || "Failed to create order");
+      }
+
+      const options = {
+        key: response.razorPayKey,
+        amount: response.amount,
+        currency: response.currency,
+        name: "Testing",
+        description: "Order Payment",
+        order_id: response.orderId, // ✅ make sure you use response.orderId
+        handler: async function (res: any) {
+          console.log("Payment success:", res);
+
+          try {
+            const verifyRes = await fetch("/api/payment/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(res),
+            });
+
+            const data = await verifyRes.json();
+
+            if (data.success) {
+              toast.success("Payment verified!");
+              // Now place order in backend / Redux
+              await dispatch(
+                placeOrder({
+                  userId: user.id,
+                  addressId: formData.selectedAddressId,
+                  items: items.map((i) => ({
+                    productId: i.id,
+                    quantity: i.quantity,
+                  })),
+                  paymentMethod: "online",
+                  razorpayPaymentId: res.razorpay_payment_id,
+                })
+              ).unwrap();
+              // clear cart etc.
+            } else {
+              toast.error("Payment verification failed!");
+            }
+          } catch (err) {
+            console.error(err);
+            toast.error("Error verifying payment");
+          }
+        },
+
+        prefill: {
+          name: user?.name || "Guest",
+          email: user?.email || "guest@example.com",
+          contact: user?.phoneNumber || "9999999999",
+        },
+        theme: { color: "#3399cc" },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+
+      return response.orderId;
+    } catch (error) {
+      console.error("Order creation failed:", error);
+      throw error;
+    }
+  };
+
+  const handlePlaceOrderCOD = async () => {
     console.log("handlePlaceOrder");
     // if (validateStep(3)) {
     setIsProcessing(true);
@@ -308,6 +406,41 @@ const CheckoutPage = () => {
     }
     // }
   };
+
+  const handlePlaceOrderOnline = async () => {
+    console.log("handlePlaceOrder");
+    // if (validateStep(3)) {
+    setIsProcessing(true);
+
+    try {
+      const orderId = await generateOrderId();
+
+      if (!orderId) {
+        throw new Error("Failed to generate order ID");
+      }
+      await dispatch(
+        placeOrder({
+          userId: user.id,
+          addressId: formData.selectedAddressId,
+          items: items.map((i) => ({
+            productId: i.id,
+            quantity: i.quantity,
+          })),
+          paymentMethod: formData.paymentMethods,
+        })
+      ).unwrap();
+
+      // setOrderSuccess(true);
+      // dispatch(clearCart());
+    } catch (error) {
+      console.error("Order placement failed:", error);
+      alert("Order placement failed. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+    // }
+  };
+
   const handleAddNewAddress = async () => {
     if (validateStep(2)) {
       try {
@@ -933,7 +1066,11 @@ const CheckoutPage = () => {
                   </button>
 
                   <button
-                    onClick={() => handlePlaceOrder()}
+                    onClick={() =>
+                      formData.paymentMethods == "cod"
+                        ? handlePlaceOrderCOD()
+                        : handlePlaceOrderOnline()
+                    }
                     disabled={isProcessing || !formData.paymentMethods}
                     className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-2xl font-semibold hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >

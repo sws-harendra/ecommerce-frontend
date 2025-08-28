@@ -151,7 +151,7 @@ export default function EcommerceNavbar() {
             </button>
 
             {/* Wishlist */}
-            <div className="relative hidden sm:block">
+            {/* <div className="relative hidden sm:block">
               <button className="text-gray-600 hover:text-red-500 transition-colors duration-200 group">
                 <Heart className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
                 {wishlistCount > 0 && (
@@ -160,7 +160,7 @@ export default function EcommerceNavbar() {
                   </span>
                 )}
               </button>
-            </div>
+            </div> */}
 
             {/* Cart */}
             <div className="relative">

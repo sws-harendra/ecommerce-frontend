@@ -87,7 +87,7 @@ export default function HomeSections() {
                     key={product.id}
                     id={product.id}
                     name={product.name}
-                    image={getImageUrl(product.images?.[0])}
+                    image={product.images?.[0]}
                     price={product.discountPrice}
                     originalPrice={product.originalPrice}
                     rating={product.ratings ?? 0}
@@ -95,7 +95,7 @@ export default function HomeSections() {
                       product.originalPrice,
                       product.discountPrice
                     )}
-                    // isFavorite={favorites.has(product.id)}
+                    paymentMethods={product.paymentMethods} // isFavorite={favorites.has(product.id)}
                     // onToggleFavorite={toggleFavorite}
                   />
                 ))}
