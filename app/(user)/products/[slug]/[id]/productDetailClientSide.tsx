@@ -84,6 +84,7 @@ export default function ProductDetailClient({
                   src={getImageUrl(product.images[selectedImage])}
                   alt={product.name}
                   fill
+                  unoptimized
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                   priority
                 />
@@ -133,6 +134,7 @@ export default function ProductDetailClient({
                     onClick={() => setSelectedImage(index)}
                   >
                     <Image
+                      unoptimized
                       src={getImageUrl(image)}
                       alt={`${product.name} ${index + 1}`}
                       fill

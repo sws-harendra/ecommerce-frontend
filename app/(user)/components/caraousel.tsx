@@ -94,6 +94,7 @@ export default function BannerCarousel() {
                 className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
                   imageLoaded[index] ? "opacity-100" : "opacity-0"
                 }`}
+                unoptimized
                 onLoad={() => handleImageLoad(index)}
                 loading={index === 0 ? "eager" : "lazy"}
               />
@@ -186,6 +187,7 @@ export default function BannerCarousel() {
             }`}
           >
             <Image
+              unoptimized
               src={getImageUrl(banner.imageUrl)}
               alt={banner.title}
               fill
