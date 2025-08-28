@@ -5,31 +5,29 @@ import {
   ShoppingBag,
   Package,
   Users,
-  BarChart2,
-  Settings,
-  Menu,
-  X,
-  LogOut,
-  PackageOpen,
   Banknote,
   Section,
   SeparatorVertical,
+  Menu,
+  X,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // ✅ for navigation
 import { brandName } from "@/app/contants";
+import { useAppDispatch } from "@/app/lib/store/store";
+import { logout } from "@/app/lib/store/features/authSlice";
+
 const menuItems = [
   { name: "Dashboard", icon: Home, href: "/admin/dashboard" },
   { name: "Products", icon: Package, href: "/admin/dashboard/products" },
   { name: "Orders", icon: ShoppingBag, href: "/admin/dashboard/orders" },
-  { name: "users", icon: Users, href: "/admin/dashboard/users" },
+  { name: "Users", icon: Users, href: "/admin/dashboard/users" },
   {
     name: "Banners",
     icon: Banknote,
     href: "/admin/dashboard/banner-management",
   },
-
-  //   { name: "Analytics", icon: BarChart2, href: "/admin/dashboard/analytics" },
-  // { name: "Settings", icon: Settings, href: "/admin/dashboard/settings" },
   {
     name: "Section Control",
     icon: Section,
@@ -40,12 +38,30 @@ const menuItems = [
     icon: SeparatorVertical,
     href: "/admin/dashboard/category",
   },
-
-  { name: "Logout", icon: LogOut, href: "/authentication/login" },
+  {
+    name: "Logout",
+    icon: LogOut,
+    href: "/authentication/login",
+    isLogout: true,
+  }, // ✅ mark logout
 ];
 
 export default function Sidebar() {
   const [open, setOpen] = useState(true);
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  // ✅ Logout handler
+  const handleLogout = async () => {
+    try {
+      await dispatch(logout());
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      router.push("/authentication/login"); // move to login
+      router.refresh(); // reloads data / clears cache
+      window.location.reload(); // full reload to clear client state
+    }
+  };
 
   return (
     <div className="flex">
@@ -76,17 +92,31 @@ export default function Sidebar() {
         <ul className="space-y-4">
           {menuItems.map((item, idx) => (
             <li key={idx}>
-              <Link
-                href={item.href}
-                className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-800 transition"
-              >
-                <item.icon size={20} />
-                <span
-                  className={`${!open && "hidden"} origin-left duration-200`}
+              {item.isLogout ? (
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-3 p-2 rounded-md hover:bg-gray-800 transition text-left"
                 >
-                  {item.name}
-                </span>
-              </Link>
+                  <item.icon size={20} />
+                  <span
+                    className={`${!open && "hidden"} origin-left duration-200`}
+                  >
+                    {item.name}
+                  </span>
+                </button>
+              ) : (
+                <Link
+                  href={item.href}
+                  className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-800 transition"
+                >
+                  <item.icon size={20} />
+                  <span
+                    className={`${!open && "hidden"} origin-left duration-200`}
+                  >
+                    {item.name}
+                  </span>
+                </Link>
+              )}
             </li>
           ))}
         </ul>

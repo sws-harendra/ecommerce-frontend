@@ -67,13 +67,9 @@ const OrderHistoryPage = () => {
 
     if (!amount || isNaN(amount)) return "₹0.00";
 
-    let finalAmount;
     // If amount is greater than 1000 and seems to be in paisa format
-    if (amount > 1000 && Number.isInteger(amount)) {
-      finalAmount = amount / 100;
-    } else {
-      finalAmount = parseFloat(amount);
-    }
+
+    const finalAmount = parseFloat(amount);
 
     return `₹${finalAmount.toLocaleString("en-IN", {
       minimumFractionDigits: 2,
