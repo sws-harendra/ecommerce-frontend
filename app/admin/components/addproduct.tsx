@@ -42,7 +42,7 @@ const AddProducts = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await categoryService.getCategory();
+        const res = await categoryService.getAllCategories();
         console.log(res);
         if (res.success) setCategories(res.categories);
       } catch (err) {

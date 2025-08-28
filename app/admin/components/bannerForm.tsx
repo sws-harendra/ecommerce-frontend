@@ -44,7 +44,7 @@ const BannerForm = ({
 
   const fetchCategories = async () => {
     try {
-      const res = await categoryService.getCategory();
+      const res = await categoryService.getAllCategories();
       setCategories(res.categories);
     } catch (err) {
       console.error("Error fetching categories", err);
