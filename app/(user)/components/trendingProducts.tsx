@@ -72,7 +72,7 @@ const TrendingProducts = () => {
       <Heading title="🔥 Trending Products" />
 
       <div
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-50 to-white p-6 shadow-2xl"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-50 to-white p-6 "
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >

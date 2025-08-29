@@ -38,10 +38,11 @@ export default function HomeSections() {
         return (
           <div key={section.id} className="relative">
             {/* Section Heading */}
-            <Heading title={section.title} />
-
+            <div className=" relative">
+              <Heading title={section.title} />
+            </div>
             <div
-              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-50 to-white p-6 shadow-2xl"
+              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-50 to-white p-6"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
