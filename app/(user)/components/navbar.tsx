@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Search,
   ShoppingCart,
@@ -23,12 +23,18 @@ import { logout } from "@/app/lib/store/features/authSlice";
 import { useRouter } from "next/navigation";
 import { selectCartItemsCount } from "@/app/lib/store/features/cartSlice";
 import { brandName } from "@/app/contants";
+import { fetchCategories } from "@/app/lib/store/features/categorySlice";
+import DropdownCategory from "@/app/commonComponents/renderCategory";
 
 export default function EcommerceNavbar() {
   const dispatch = useAppDispatch(); // ✅ typed dispatch
   const { isAuthenticated, user, status } = useAppSelector(
     (state: RootState) => state.auth // ✅ typed state
   );
+
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
   const cartCount = useAppSelector(selectCartItemsCount);
 
   const router = useRouter();
@@ -42,13 +48,7 @@ export default function EcommerceNavbar() {
       router.push(`/products?search=${encodeURIComponent(searchInput)}`);
     }
   };
-
-  const categories = [
-    { name: "Electronics", icon: Zap, color: "text-blue-500" },
-    { name: "Fashion", icon: Crown, color: "text-purple-500" },
-    { name: "Home & Garden", icon: Gift, color: "text-green-500" },
-    { name: "Sports", icon: Star, color: "text-orange-500" },
-  ];
+  const { categories } = useAppSelector((state: RootState) => state.category);
 
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50 border-b border-gray-100">
@@ -82,43 +82,8 @@ export default function EcommerceNavbar() {
 
             {/* Desktop Categories */}
             <div className="hidden lg:flex items-center space-x-8">
-              {categories.map((category) => (
-                <div key={category.name} className="relative group">
-                  <button className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors duration-200 py-2">
-                    <category.icon className={`w-4 h-4 ${category.color}`} />
-                    <span className="font-medium">{category.name}</span>
-                    <ChevronDown className="w-4 h-4 group-hover:rotate-180 transition-transform duration-200" />
-                  </button>
-
-                  {/* Dropdown Preview */}
-                  <div className="absolute top-full left-0 w-64 bg-white shadow-xl rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 border border-gray-100">
-                    <div className="p-4">
-                      <p className="text-sm text-gray-500 mb-2">
-                        Popular in {category.name}
-                      </p>
-                      <div className="space-y-2">
-                        <a
-                          href="#"
-                          className="block text-gray-700 hover:text-purple-600 transition-colors"
-                        >
-                          Trending Items
-                        </a>
-                        <a
-                          href="#"
-                          className="block text-gray-700 hover:text-purple-600 transition-colors"
-                        >
-                          Best Sellers
-                        </a>
-                        <a
-                          href="#"
-                          className="block text-gray-700 hover:text-purple-600 transition-colors"
-                        >
-                          New Arrivals
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              {categories.map((category: any) => (
+                <DropdownCategory key={category.id} category={category} />
               ))}
             </div>
           </div>
@@ -270,15 +235,29 @@ export default function EcommerceNavbar() {
             </div>
 
             {/* Mobile Categories */}
-            {categories.map((category) => (
-              <a
-                key={category.name}
-                href="#"
-                className="flex items-center space-x-3 py-3 text-gray-700 hover:text-purple-600 transition-colors border-b border-gray-100"
-              >
-                <category.icon className={`w-5 h-5 ${category.color}`} />
-                <span className="font-medium">{category.name}</span>
-              </a>
+            {categories.map((category: any) => (
+              <div key={category.id} className="space-y-2">
+                <Link
+                  href={`/products?category=${category.id}`}
+                  className="flex items-center space-x-3 py-3 text-gray-700 hover:text-purple-600 transition-colors border-b border-gray-100"
+                >
+                  <span className="font-medium">{category.name}</span>
+                </Link>
+
+                {category.subcategories?.length > 0 && (
+                  <div className="ml-6 space-y-1">
+                    {category.subcategories.map((sub: any) => (
+                      <Link
+                        key={sub.id}
+                        href={`/products?category=${sub.id}`}
+                        className="block text-gray-600 hover:text-purple-600"
+                      >
+                        {sub.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
 
             {/* Mobile Wishlist */}

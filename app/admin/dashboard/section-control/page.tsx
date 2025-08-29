@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import AddSectionForm from "../../components/addSection";
 import SidebarForm from "../../components/SidebarForm";
+import EditSectionForm from "../../components/editSection";
 
 export default function SectionManager() {
   const dispatch = useAppDispatch();
@@ -185,10 +186,20 @@ export default function SectionManager() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
-                      <button className="flex-1 flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-colors font-medium">
-                        <Edit3 size={16} />
-                        Edit
-                      </button>
+                      <SidebarForm
+                        title="Add Section"
+                        trigger={
+                          <button
+                            onClick={() => setShowForm(!showForm)}
+                            className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
+                          >
+                            <Plus size={20} />
+                            Edit
+                          </button>
+                        }
+                      >
+                        <EditSectionForm section={section} />
+                      </SidebarForm>
 
                       {deleteConfirm === section.id ? (
                         <div className="flex gap-2">

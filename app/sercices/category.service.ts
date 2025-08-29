@@ -14,7 +14,11 @@ export const categoryService = {
   },
 
   // Create category
-  createCategory: async (data: { name: string; description: string }) => {
+  createCategory: async (data: {
+    name: string;
+    description: string;
+    parentId: number | null;
+  }) => {
     const response = await axiosInstance.post("/category", data);
     return response.data;
   },

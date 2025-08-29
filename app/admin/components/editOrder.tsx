@@ -176,7 +176,7 @@ const EditOrder: React.FC<EditOrderProps> = ({ orderId, onClose }) => {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                Total Amount ($)
+                Total Amount (₹)
               </label>
               <input
                 type="number"
@@ -218,17 +218,17 @@ const EditOrder: React.FC<EditOrderProps> = ({ orderId, onClose }) => {
                     <div>
                       <p className="font-medium">{item.Product?.name}</p>
                       <p className="text-sm text-gray-600">
-                        {item.quantity} × ${item.price?.toFixed(2)}
+                        {item.quantity} × ₹{item.price?.toFixed(2)}
                       </p>
                     </div>
-                    <p className="font-medium">${item.subtotal?.toFixed(2)}</p>
+                    <p className="font-medium"> ₹{item.subtotal?.toFixed(2)}</p>
                   </div>
                 ))}
               </div>
 
               <div className="flex justify-between font-bold text-lg border-t pt-2">
                 <span>Total</span>
-                <span>${currentOrder.totalAmount.toFixed(2)}</span>
+                <span>₹{currentOrder.totalAmount.toFixed(2)}</span>
               </div>
             </div>
           </div>

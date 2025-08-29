@@ -12,12 +12,61 @@ const Category = () => {
   const dispatch = useAppDispatch();
   const { categories, loading } = useAppSelector((state) => state.category);
 
-  const [form, setForm] = useState({ name: "", description: "" });
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    parentId: null,
+  });
   const [editId, setEditId] = useState<number | null>(null);
 
   useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
+
+  // Function to flatten categories for dropdown display
+  const flattenCategoriesForDropdown = (cats: any[], level = 0): any[] => {
+    let result: any[] = [];
+
+    cats.forEach((cat) => {
+      // Add current category with proper indentation indicator
+      result.push({
+        id: cat.id,
+        name: cat.name,
+        level: level,
+        displayName: "  ".repeat(level) + (level > 0 ? "└ " : "") + cat.name,
+      });
+
+      // Recursively add subcategories
+      if (cat.subcategories && cat.subcategories.length > 0) {
+        result = result.concat(
+          flattenCategoriesForDropdown(cat.subcategories, level + 1)
+        );
+      }
+    });
+
+    return result;
+  };
+
+  // Function to flatten categories for table display
+  const flattenCategoriesForTable = (cats: any[], level = 0): any[] => {
+    let result: any[] = [];
+
+    cats.forEach((cat) => {
+      result.push({
+        ...cat,
+        level: level,
+        displayName: "  ".repeat(level) + (level > 0 ? "└ " : "") + cat.name,
+      });
+
+      if (cat.subcategories && cat.subcategories.length > 0) {
+        result = result.concat(
+          flattenCategoriesForTable(cat.subcategories, level + 1)
+        );
+      }
+    });
+
+    return result;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,12 +76,16 @@ const Category = () => {
     } else {
       dispatch(createCategory(form));
     }
-    setForm({ name: "", description: "" });
+    setForm({ name: "", description: "", parentId: null });
   };
 
   const handleEdit = (cat: any) => {
     setEditId(cat.id);
-    setForm({ name: cat.name, description: cat.description });
+    setForm({
+      name: cat.name,
+      description: cat.description,
+      parentId: cat.parentId,
+    });
   };
 
   const handleDelete = (id: number) => {
@@ -43,8 +96,16 @@ const Category = () => {
 
   const handleCancel = () => {
     setEditId(null);
-    setForm({ name: "", description: "" });
+    setForm({ name: "", description: "", parentId: null });
   };
+
+  // Get flattened categories for dropdown (exclude the category being edited to prevent circular reference)
+  const dropdownCategories = flattenCategoriesForDropdown(categories).filter(
+    (cat) => (editId ? cat.id !== editId : true)
+  );
+
+  // Get flattened categories for table display
+  const tableCategories = flattenCategoriesForTable(categories);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -60,8 +121,8 @@ const Category = () => {
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-medium">
-                {categories.length}{" "}
-                {categories.length === 1 ? "Category" : "Categories"}
+                {tableCategories.length}{" "}
+                {tableCategories.length === 1 ? "Category" : "Categories"}
               </span>
             </div>
           </div>
@@ -139,6 +200,39 @@ const Category = () => {
                   />
                 </div>
 
+                <div>
+                  <label
+                    htmlFor="parentId"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Parent Category (optional)
+                  </label>
+                  <select
+                    id="parentId"
+                    value={form.parentId ?? ""}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        parentId: e.target.value
+                          ? Number(e.target.value)
+                          : null,
+                      })
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    style={{ fontFamily: "monospace" }}
+                  >
+                    <option value="">None (Top-level)</option>
+                    {dropdownCategories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.displayName}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Categories are shown in hierarchical order
+                  </p>
+                </div>
+
                 <div className="flex space-x-3">
                   <button
                     type="submit"
@@ -182,7 +276,7 @@ const Category = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h2 className="text-xl font-semibold text-gray-900">
-                  All Categories
+                  All Categories (Hierarchical View)
                 </h2>
               </div>
 
@@ -205,7 +299,7 @@ const Category = () => {
                     <span>Loading categories...</span>
                   </div>
                 </div>
-              ) : categories.length === 0 ? (
+              ) : tableCategories.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                     <svg
@@ -243,13 +337,16 @@ const Category = () => {
                         <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Description
                         </th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Parent
+                        </th>
                         <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {categories.map((cat: any, index: number) => (
+                      {tableCategories.map((cat: any, index: number) => (
                         <tr
                           key={cat.id}
                           className={`hover:bg-gray-50 transition-colors ${
@@ -262,14 +359,33 @@ const Category = () => {
                             #{cat.id}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
-                              {cat.name}
+                            <div
+                              className="text-sm font-medium text-gray-900"
+                              style={{ fontFamily: "monospace" }}
+                            >
+                              {cat.displayName}
                             </div>
+                            {cat.level > 0 && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                Subcategory (Level {cat.level})
+                              </div>
+                            )}
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm text-gray-600 max-w-xs truncate">
                               {cat.description}
                             </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {cat.parentId ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
+                                #{cat.parentId}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                                Root
+                              </span>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex items-center justify-end space-x-2">

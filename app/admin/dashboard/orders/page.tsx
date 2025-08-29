@@ -20,6 +20,7 @@ import {
   Users,
   DollarSign,
   RefreshCcw,
+  IndianRupee,
 } from "lucide-react";
 import { fetchOrders } from "@/app/lib/store/features/orderSlice";
 import { useAppDispatch, useAppSelector } from "@/app/lib/store/store";
@@ -183,7 +184,7 @@ const OrderManagement = () => {
       value: `${orders
         .reduce((sum: number, order: Order) => sum + order.totalAmount, 0)
         .toFixed(2)}`,
-      icon: DollarSign,
+      icon: IndianRupee,
       color: "text-green-600",
       bg: "bg-green-50",
       border: "border-green-200",
@@ -496,7 +497,7 @@ const OrderManagement = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-semibold text-gray-900">
-                            ${order.totalAmount.toFixed(2)}
+                            ₹{order.totalAmount.toFixed(2)}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

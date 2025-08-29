@@ -421,6 +421,7 @@ const FilterSidebar = ({
 function AllProducts() {
   const searchParams = useSearchParams();
   const querySearch = searchParams.get("search") || "";
+  const queryCategory = searchParams.get("categoryId") || "";
 
   const dispatch = useAppDispatch();
   const { products, status, error } = useAppSelector((state) => state.product);
@@ -428,6 +429,7 @@ function AllProducts() {
 
   // State
   const [search, setSearch] = useState(querySearch);
+  const [categoryId, setCategoryId] = useState(queryCategory);
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
   const [category, setCategory] = useState("");
@@ -437,6 +439,13 @@ function AllProducts() {
   const [viewMode, setViewMode] = useState("grid");
   const [filterOpen, setFilterOpen] = useState(false);
   const [favorites, setFavorites] = useState<number[]>([]);
+  useEffect(() => {
+    if (queryCategory !== categoryId) {
+      setCategoryId(queryCategory);
+      setPage(1);
+    }
+  }, [queryCategory]);
+
   useEffect(() => {
     if (querySearch !== search) {
       setSearch(querySearch);
@@ -454,6 +463,7 @@ function AllProducts() {
       page,
       limit,
       search,
+      categoryId,
     };
 
     if (category) {
