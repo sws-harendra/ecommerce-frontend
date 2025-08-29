@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   LogOut,
+  PackagePlusIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // ✅ for navigation
@@ -37,6 +38,11 @@ const menuItems = [
     name: "Category",
     icon: SeparatorVertical,
     href: "/admin/dashboard/category",
+  },
+  {
+    name: "Add Pages",
+    icon: PackagePlusIcon,
+    href: "/admin/dashboard/staticpages",
   },
   {
     name: "Logout",

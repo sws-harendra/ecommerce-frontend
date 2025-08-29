@@ -18,6 +18,7 @@ import { useAppDispatch, useAppSelector } from "@/app/lib/store/store";
 import {
   fetchProducts,
   deleteProduct,
+  fetchProductsforadmin,
 } from "@/app/lib/store/features/productSlice";
 import { Product } from "@/app/types/product.types";
 import { toast } from "sonner";
@@ -58,7 +59,7 @@ export default function AdminProductsPage() {
   // Fetch products
   useEffect(() => {
     dispatch(
-      fetchProducts({
+      fetchProductsforadmin({
         search,
         categoryId,
         minPrice,
@@ -122,6 +123,8 @@ export default function AdminProductsPage() {
   };
 
   const totalProducts = products?.total || 0;
+  const activeProducts = products?.activeProducts || 0;
+
   const totalPages = Math.ceil(totalProducts / limit);
 
   return (
@@ -205,10 +208,7 @@ export default function AdminProductsPage() {
                   Active Products
                 </p>
                 <p className="text-2xl font-bold text-emerald-600">
-                  {Array.isArray(products?.products)
-                    ? products.products.filter((p) => p.status === "active")
-                        .length
-                    : 0}
+                  {Array.isArray(products?.products) ? activeProducts : 0}
                 </p>
               </div>
               <div className="p-2 bg-emerald-100 rounded-lg">
@@ -449,9 +449,9 @@ export default function AdminProductsPage() {
                 <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Stock
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                {/* <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Brand
-                </th>
+                </th> */}
                 <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Status
                 </th>
@@ -523,9 +523,9 @@ export default function AdminProductsPage() {
                         {product.stock ?? "0"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
+                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
                       {product.brand || "-"}
-                    </td>
+                    </td> */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${

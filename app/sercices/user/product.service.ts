@@ -23,7 +23,18 @@ export const productService = {
     const response = await axiosInstance.get("/products", { params });
     return response.data;
   },
-
+  getAllProductsforAdmin: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    categoryId?: number;
+    minPrice?: number;
+    maxPrice?: number;
+    trending?: boolean;
+  }) => {
+    const response = await axiosInstance.get("/products/forAdmin", { params });
+    return response.data;
+  },
   // Get single product by ID
   getProductById: async (id: string) => {
     const response = await axiosInstance.get(`/products/${id}`);

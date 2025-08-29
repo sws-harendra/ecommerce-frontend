@@ -12,6 +12,7 @@ import {
   DollarSign,
   Archive,
   TrendingUpIcon,
+  IndianRupee,
 } from "lucide-react";
 import { categoryService } from "@/app/sercices/category.service";
 
@@ -33,6 +34,7 @@ const AddProducts = () => {
     discountPrice: "",
     stock: "",
     trendingProduct: false, // ✅ added
+    paymentMethods: "both", // ✅ default
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -110,6 +112,7 @@ const AddProducts = () => {
         discountPrice: "",
         stock: "",
         trendingProduct: false,
+        paymentMethods: "",
       });
       setImages([]);
       previewUrls.forEach((url) => URL.revokeObjectURL(url));
@@ -241,7 +244,7 @@ const AddProducts = () => {
                       Original Price
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                       <input
                         type="number"
                         name="originalPrice"
@@ -260,7 +263,7 @@ const AddProducts = () => {
                       Sale Price
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-500 w-5 h-5" />
+                      <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-500 w-5 h-5" />
                       <input
                         type="number"
                         name="discountPrice"
@@ -381,6 +384,33 @@ const AddProducts = () => {
                     />
                     <span className="text-gray-700">Mark as Trending</span>
                   </div>
+                </div>
+              </div>{" "}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-2 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    Payment Mode
+                  </h3>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Payment Mode
+                  </label>
+                  <select
+                    name="paymentMode"
+                    value={formData.paymentMethods}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl 
+               focus:ring-2 focus:ring-blue-500 focus:border-transparent 
+               transition-all duration-200 bg-gray-50 hover:bg-white"
+                    required
+                  >
+                    <option value="cod">Cash on Delivery (COD)</option>
+                    <option value="online">Online Payment</option>
+                    <option value="both">Both COD & Online</option>
+                  </select>
                 </div>
               </div>
             </div>

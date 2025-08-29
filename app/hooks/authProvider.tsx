@@ -32,71 +32,101 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       dispatch(getUserDetails());
     }
   }, [dispatch, isAuthenticated, user, status, pathname]);
-
-  // Handle redirects based on authentication state
   useEffect(() => {
     const publicPages = [
       "/authentication/login",
       "/authentication/register",
       "/",
+      "/cart",
     ];
 
-    if (publicPages.includes(pathname)) return;
+    // also allow dynamic product pages
+    const publicPatterns = [/^\/products\/.*/];
 
+    const isPublic =
+      publicPages.includes(pathname) ||
+      publicPatterns.some((pattern) => pattern.test(pathname));
+
+    if (isPublic) return;
+
+    if (status === "loading") return;
+
+    if (!isAuthenticated && !user && status === "idle") {
+      console.log("---> Checking authentication on page load");
+      dispatch(getUserDetails());
+    }
     if (status === "failed" || (!isAuthenticated && status === "succeeded")) {
       console.log("---> Authentication failed, redirecting to login");
       router.push("/authentication/login");
       return;
     }
+  }, [dispatch, isAuthenticated, user, status, pathname]);
 
-    // if (isAuthenticated && user?.role) {
-    //   const rolePath: Record<string, string> = {
-    //     admin: "/admin",
-    //     instructor: "/instructor",
-    //     user: "/",
-    //   };
+  // Handle redirects based on authentication state
+  // useEffect(() => {
+  //   const publicPages = [
+  //     "/authentication/login",
+  //     "/authentication/register",
+  //     "/",
+  //     "/cart",
+  //   ];
 
-    //   const dashboardPath: Record<string, string> = {
-    //     admin: "/admin/dashboard",
-    //     instructor: "/instructor/dashboard",
-    //     user: "/user/dashboard",
-    //   };
+  //   if (publicPages.includes(pathname)) return;
 
-    //   const userRole = user.role as keyof typeof rolePath;
-    //   const allowedBasePath = rolePath[userRole];
-    //   const defaultDashboard = dashboardPath[userRole];
+  //   if (status === "failed" || (!isAuthenticated && status === "succeeded")) {
+  //     console.log("---> Authentication failed, redirecting to login");
+  //     router.push("/authentication/login");
+  //     return;
+  //   }
 
-    //   const isAccessingWrongRoleArea = Object.values(rolePath)
-    //     .filter((path) => path !== allowedBasePath)
-    //     .some((path) => pathname.startsWith(path));
+  //   // if (isAuthenticated && user?.role) {
+  //   //   const rolePath: Record<string, string> = {
+  //   //     admin: "/admin",
+  //   //     instructor: "/instructor",
+  //   //     user: "/",
+  //   //   };
 
-    //   if (isAccessingWrongRoleArea) {
-    //     console.log(
-    //       "---> User accessing wrong role area, redirecting to dashboard:",
-    //       defaultDashboard
-    //     );
-    //     router.push(defaultDashboard);
-    //     return;
-    //   }
+  //   //   const dashboardPath: Record<string, string> = {
+  //   //     admin: "/admin/dashboard",
+  //   //     instructor: "/instructor/dashboard",
+  //   //     user: "/user/dashboard",
+  //   //   };
 
-    //   if (pathname === allowedBasePath) {
-    //     console.log(
-    //       "---> Redirecting to dashboard from role root:",
-    //       defaultDashboard
-    //     );
-    //     router.push(defaultDashboard);
-    //     return;
-    //   }
+  //   //   const userRole = user.role as keyof typeof rolePath;
+  //   //   const allowedBasePath = rolePath[userRole];
+  //   //   const defaultDashboard = dashboardPath[userRole];
 
-    //   if (pathname === "/" && status === "succeeded") {
-    //     console.log(
-    //       "---> Authenticated user on home page, redirecting to dashboard:",
-    //       defaultDashboard
-    //     );
-    //     router.push(defaultDashboard);
-    //   }
-    // }
-  }, [isAuthenticated, user, status, router, pathname]);
+  //   //   const isAccessingWrongRoleArea = Object.values(rolePath)
+  //   //     .filter((path) => path !== allowedBasePath)
+  //   //     .some((path) => pathname.startsWith(path));
+
+  //   //   if (isAccessingWrongRoleArea) {
+  //   //     console.log(
+  //   //       "---> User accessing wrong role area, redirecting to dashboard:",
+  //   //       defaultDashboard
+  //   //     );
+  //   //     router.push(defaultDashboard);
+  //   //     return;
+  //   //   }
+
+  //   //   if (pathname === allowedBasePath) {
+  //   //     console.log(
+  //   //       "---> Redirecting to dashboard from role root:",
+  //   //       defaultDashboard
+  //   //     );
+  //   //     router.push(defaultDashboard);
+  //   //     return;
+  //   //   }
+
+  //   //   if (pathname === "/" && status === "succeeded") {
+  //   //     console.log(
+  //   //       "---> Authenticated user on home page, redirecting to dashboard:",
+  //   //       defaultDashboard
+  //   //     );
+  //   //     router.push(defaultDashboard);
+  //   //   }
+  //   // }
+  // // }, [isAuthenticated, user, status, router, pathname]);
 
   return children;
 }

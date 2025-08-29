@@ -31,6 +31,32 @@ export const fetchProducts = createAsyncThunk(
   }
 );
 
+export const fetchProductsforadmin = createAsyncThunk(
+  "products/fetchAllforadmin",
+  async (
+    params:
+      | {
+          page?: number;
+          limit?: number;
+          search?: string;
+          categoryId?: number;
+          minPrice?: number;
+          maxPrice?: number;
+          trending?: boolean;
+        }
+      | undefined,
+    { rejectWithValue }
+  ) => {
+    try {
+      return await productService.getAllProductsforAdmin(params);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        return rejectWithValue(err.message);
+      }
+      return rejectWithValue("Fetching products failed");
+    }
+  }
+);
 export const fetchProductById = createAsyncThunk(
   "products/fetchById",
   async (id: string, { rejectWithValue }) => {
@@ -132,6 +158,19 @@ const productSlice = createSlice({
         state.products = action.payload;
       })
       .addCase(fetchProducts.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload as string;
+      })
+      .addCase(fetchProductsforadmin.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchProductsforadmin.fulfilled, (state, action) => {
+        console.log(action.payload);
+
+        state.status = "succeeded";
+        state.products = action.payload;
+      })
+      .addCase(fetchProductsforadmin.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload as string;
       })

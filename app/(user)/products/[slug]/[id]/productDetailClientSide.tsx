@@ -11,6 +11,7 @@ import Loader from "@/app/commonComponents/loader";
 import { BugPlayIcon, ShoppingBag, ShoppingCart, Wallet } from "lucide-react";
 import { addToCart } from "@/app/lib/store/features/cartSlice";
 import { useAppDispatch } from "@/app/lib/store/store";
+import { useRouter } from "next/navigation";
 
 interface ProductDetailClientProps {
   product: Product;
@@ -21,6 +22,8 @@ export default function ProductDetailClient({
   product,
   formattedTags,
 }: ProductDetailClientProps) {
+  const router = useRouter();
+
   const [mounted, setMounted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const dispatch = useAppDispatch(); // ✅ typed dispatch
@@ -34,13 +37,8 @@ export default function ProductDetailClient({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-200 to-blue-50">
+    <div className="min-h-screen pb-10 bg-gradient-to-br from-slate-50 via-gray-200 to-blue-50">
       {/* Animated Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-      </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-4">
         {/* Breadcrumb with Animation */}
@@ -240,7 +238,22 @@ export default function ProductDetailClient({
 
             {/* Action Buttons */}
             <div className="space-y-4 pt-8">
-              <button className="w-full group relative bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl overflow-hidden">
+              <button
+                onClick={async () => {
+                  await dispatch(
+                    addToCart({
+                      id: product.id,
+                      name: product.name,
+                      price: parseFloat(product.discountPrice),
+                      quantity: 1,
+                      imageUrl: product.images?.[0] || "",
+                      paymentMethods: product.paymentMethods,
+                    })
+                  );
+                  router.push("/cart");
+                }}
+                className="w-full group relative bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl overflow-hidden"
+              >
                 <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
                 <div className="relative flex items-center justify-center space-x-2">
                   <Wallet />
@@ -272,80 +285,6 @@ export default function ProductDetailClient({
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes blob {
-          0% {
-            transform: translate(0px, 0px) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-          100% {
-            transform: translate(0px, 0px) scale(1);
-          }
-        }
-
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes fade-in-left {
-          from {
-            opacity: 0;
-            transform: translateX(-30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes fade-in-right {
-          from {
-            opacity: 0;
-            transform: translateX(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-
-        .animate-fade-in-up {
-          animation: fade-in-up 0.6s ease-out forwards;
-        }
-
-        .animate-fade-in-left {
-          animation: fade-in-left 0.8s ease-out forwards;
-        }
-
-        .animate-fade-in-right {
-          animation: fade-in-right 0.8s ease-out forwards;
-        }
-
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
     </div>
   );
 }

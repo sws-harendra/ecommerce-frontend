@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-12">
+    <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-7xl text-center mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Brand */}
         <div className="flex flex-col items-center justify-center">
@@ -48,23 +48,18 @@ export default function Footer() {
           </h3>
           <ul className="space-y-2 text-sm">
             <li>
-              <Link href="/help" className="hover:text-white">
-                Help Center
+              <Link href="/refund-policy" className="hover:text-white">
+                Refund Policy
               </Link>
             </li>
             <li>
-              <Link href="/returns" className="hover:text-white">
-                Returns
+              <Link href="/terms&conditions" className="hover:text-white">
+                Terms & Condition
               </Link>
             </li>
             <li>
-              <Link href="/shipping" className="hover:text-white">
-                Shipping Info
-              </Link>
-            </li>
-            <li>
-              <Link href="/contact" className="hover:text-white">
-                Contact Us
+              <Link href="/privacy-policy" className="hover:text-white">
+                Privacy Policy
               </Link>
             </li>
           </ul>

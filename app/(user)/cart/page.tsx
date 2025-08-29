@@ -53,7 +53,8 @@ const CartPage = () => {
   const shipping = subtotal > 100 ? 0 : 9.99;
   const discount = appliedPromo ? subtotal * appliedPromo.discount : 0;
   const tax = (subtotal - discount) * 0.08;
-  const total = subtotal + shipping - discount + tax;
+  // const total = subtotal + shipping - discount + tax;
+  const total = subtotal + shipping - discount;
 
   const handleQuantityChange = (id: number, newQuantity: number) => {
     if (newQuantity > 0 && newQuantity <= 99) {
@@ -276,7 +277,7 @@ const CartPage = () => {
       </div>
 
       {/* Header */}
-      <div className="relative z-10 bg-white/80 backdrop-blur-lg shadow-xl border-b border-white/20 sticky top-0">
+      <div className="relative z-10 bg-white/80 backdrop-blur-lg shadow-sm border-b border-white/20 sticky top-0">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -350,7 +351,7 @@ const CartPage = () => {
                           {item.name}
                         </h3>
                         <p className="text-gray-500 text-sm font-medium">
-                          Unit price: {item.price.toFixed(2)}
+                          Unit price: ₹{item.price.toFixed(2)}
                         </p>
                       </div>
                       <button
@@ -391,11 +392,11 @@ const CartPage = () => {
                       {/* Price */}
                       <div className="text-right">
                         <div className="text-xl font-bold text-gray-800 mb-1">
-                          {(item.price * item.quantity).toFixed(2)}
+                          ₹{(item.price * item.quantity).toFixed(2)}
                         </div>
                         {item.quantity > 1 && (
                           <div className="text-xs text-gray-500 font-medium">
-                            {item.price.toFixed(2)} × {item.quantity}
+                            ₹{item.price.toFixed(2)} × {item.quantity}
                           </div>
                         )}
                       </div>
@@ -406,7 +407,7 @@ const CartPage = () => {
             ))}
 
             {/* Promo Code Section */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+            {/* <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
               <h3 className="font-bold text-gray-800 mb-4 flex items-center text-lg">
                 <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
                   <Tag className="w-4 h-4 text-white" />
@@ -414,7 +415,7 @@ const CartPage = () => {
                 Promo Code
               </h3>
 
-              {/* {appliedPromo ? (
+              {appliedPromo ? (
                 <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
                   <div className="flex items-center">
                     <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center mr-3">
@@ -456,7 +457,7 @@ const CartPage = () => {
                     Apply Code
                   </button>
                 </div>
-              )} */}
+              )}
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
@@ -491,7 +492,7 @@ const CartPage = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Order Summary */}
@@ -509,7 +510,7 @@ const CartPage = () => {
                   <span className="font-medium">
                     Subtotal ({totalItems} items)
                   </span>
-                  <span className="font-bold">{subtotal.toFixed(2)}</span>
+                  <span className="font-bold"> ₹{subtotal.toFixed(2)}</span>
                 </div>
 
                 <div className="flex justify-between text-gray-600 text-sm">
@@ -526,10 +527,10 @@ const CartPage = () => {
                   </span>
                 </div>
 
-                <div className="flex justify-between text-gray-600 text-sm">
+                {/* <div className="flex justify-between text-gray-600 text-sm">
                   <span className="font-medium">Tax (8%)</span>
                   <span className="font-bold">{tax.toFixed(2)}</span>
-                </div>
+                </div> */}
 
                 {appliedPromo && (
                   <div className="flex justify-between text-green-600 text-sm">
@@ -544,7 +545,7 @@ const CartPage = () => {
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between text-xl font-bold text-gray-800">
                     <span>Total</span>
-                    <span>{total.toFixed(2)}</span>
+                    <span> ₹{total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
