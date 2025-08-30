@@ -49,7 +49,7 @@ export async function generateMetadata({
   return {
     title: `${product.name} - Shop Now`,
     description: product.description.substring(0, 160),
-    keywords: product.tags.join(", "),
+    // keywords: product.tags.join(", "),
     openGraph: {
       title: product.name,
       description: product.description.substring(0, 160),

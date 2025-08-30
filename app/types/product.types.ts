@@ -32,7 +32,7 @@ export interface ProductApiResponse {
 }
 
 export interface ProductState {
-  products: ProductApiResponse | null; // whole API response
+  products: ProductApiResponse | []; // whole API response
   product: Product | null;
   trendingProducts: Product[];
   status: "idle" | "loading" | "succeeded" | "failed";

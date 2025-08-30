@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useAppDispatch } from "@/app/lib/store/store";
-import { createProduct } from "@/app/lib/store/features/productSlice";
+import { useAppDispatch, useAppSelector } from "@/app/lib/store/store";
+import { updateProduct } from "@/app/lib/store/features/productSlice";
 import { toast } from "sonner";
 import {
   ImagePlus,
@@ -9,20 +9,24 @@ import {
   X,
   Package,
   Tag,
-  DollarSign,
-  Archive,
-  TrendingUpIcon,
   IndianRupee,
+  Archive,
 } from "lucide-react";
 import { categoryService } from "@/app/sercices/category.service";
+import { getImageUrl } from "@/app/utils/getImageUrl";
 
 interface Category {
   id: number;
   name: string;
 }
 
-const AddProducts = () => {
+interface EditProductProps {
+  productId: number;
+}
+
+const EditProduct: React.FC<EditProductProps> = ({ productId }) => {
   const dispatch = useAppDispatch();
+  const { products } = useAppSelector((state) => state.product);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [formData, setFormData] = useState({
@@ -33,19 +37,21 @@ const AddProducts = () => {
     originalPrice: "",
     discountPrice: "",
     stock: "",
-    trendingProduct: false, // ✅ added
-    paymentMethods: "both", // ✅ default
+    trendingProduct: false,
+    paymentMethods: "both",
   });
 
-  const [images, setImages] = useState<File[]>([]);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  // Separate state for image management
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [removedImages, setRemovedImages] = useState<string[]>([]);
+  const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
 
-  // ✅ fetch categories once
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const res = await categoryService.getAllCategories();
-        console.log(res);
         if (res.success) setCategories(res.categories);
       } catch (err) {
         console.error("Failed to load categories", err);
@@ -53,6 +59,32 @@ const AddProducts = () => {
     };
     fetchCategories();
   }, []);
+
+  // Load product data
+  useEffect(() => {
+    const product = products.products.find((p) => p.id === productId);
+    if (product) {
+      setFormData({
+        name: product.name,
+        description: product.description,
+        categoryId: String(product.categoryId),
+        tags: Array.isArray(product.tags)
+          ? product.tags.join(",")
+          : product.tags || "",
+        originalPrice: String(product.originalPrice),
+        discountPrice: String(product.discountPrice),
+        stock: String(product.stock),
+        trendingProduct: product.trending_product,
+        paymentMethods: product.paymentMethods || "both",
+      });
+
+      // Set existing images
+      setExistingImages(product.images || []);
+      setRemovedImages([]);
+      setNewImages([]);
+      setNewImagePreviews([]);
+    }
+  }, [productId, products]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -64,80 +96,78 @@ const AddProducts = () => {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      const updatedFiles = [...images, ...newFiles];
-      setImages(updatedFiles);
+      const files = Array.from(e.target.files);
+      setNewImages((prev) => [...prev, ...files]);
 
-      // ✅ revoke old URLs to avoid memory leaks
-      previewUrls.forEach((url) => URL.revokeObjectURL(url));
-      const urls = updatedFiles.map((file) => URL.createObjectURL(file));
-      setPreviewUrls(urls);
+      // Create previews for new images
+      const newPreviews = files.map((file) => URL.createObjectURL(file));
+      setNewImagePreviews((prev) => [...prev, ...newPreviews]);
     }
   };
 
-  const handleRemoveImage = (index: number) => {
-    const updatedFiles = images.filter((_, i) => i !== index);
-    setImages(updatedFiles);
-
-    previewUrls.forEach((url) => URL.revokeObjectURL(url));
-    const urls = updatedFiles.map((file) => URL.createObjectURL(file));
-    setPreviewUrls(urls);
+  const handleRemoveExistingImage = (imageUrl: string, index: number) => {
+    // Move from existing to removed
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
+    setRemovedImages((prev) => [...prev, imageUrl]);
   };
+
+  const handleRemoveNewImage = (index: number) => {
+    // Remove from new images
+    setNewImages((prev) => prev.filter((_, i) => i !== index));
+
+    // Clean up preview URL and remove from previews
+    const previewToRemove = newImagePreviews[index];
+    if (previewToRemove) {
+      URL.revokeObjectURL(previewToRemove);
+    }
+    setNewImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Clean up preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      newImagePreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       const data = new FormData();
+
+      // Add form fields
       data.append("name", formData.name);
       data.append("description", formData.description);
       data.append("categoryId", formData.categoryId);
-      data.append("tags", JSON.stringify(formData.tags.split(",")));
+      data.append("tags", formData.tags); // Send as simple comma-separated string
       data.append("originalPrice", formData.originalPrice);
       data.append("discountPrice", formData.discountPrice);
       data.append("stock", formData.stock);
       data.append("trending_product", String(formData.trendingProduct));
       data.append("paymentMethods", formData.paymentMethods);
-      images.forEach((file) => data.append("images", file));
 
-      await dispatch(createProduct(data)).unwrap();
-      toast.success("✅ Product added successfully!");
+      // Add image management data
+      data.append("existingImages", JSON.stringify(existingImages));
+      data.append("removedImages", JSON.stringify(removedImages));
 
-      setFormData({
-        name: "",
-        description: "",
-        categoryId: "",
-        tags: "",
-        originalPrice: "",
-        discountPrice: "",
-        stock: "",
-        trendingProduct: false,
-        paymentMethods: "",
+      // Add new image files
+      newImages.forEach((file) => {
+        data.append("images", file);
       });
-      setImages([]);
-      previewUrls.forEach((url) => URL.revokeObjectURL(url));
-      setPreviewUrls([]);
+
+      await dispatch(updateProduct({ id: productId, data })).unwrap();
+      toast.success("✅ Product updated successfully!");
     } catch (error: any) {
       toast.error(`❌ Failed: ${error}`);
     }
   };
 
-  return (
-    <div className="min-h-screen  py-2 px-1">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        {/* <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full mb-4 shadow-lg">
-            <Package className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-            Add New Product
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Create and manage your product inventory
-          </p>
-        </div> */}
+  // Calculate total images for display
+  const totalImages = existingImages.length + newImages.length;
 
+  return (
+    <div className="min-h-screen py-2 px-1">
+      <div className="max-w-4xl mx-auto">
         {/* Main Form Container */}
         <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
           <form onSubmit={handleSubmit}>
@@ -228,6 +258,7 @@ const AddProducts = () => {
                   </div>
                 </div>
               </div>
+
               {/* Pricing & Inventory Section */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3 mb-6">
@@ -296,6 +327,7 @@ const AddProducts = () => {
                   </div>
                 </div>
               </div>
+
               {/* Image Upload Section */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3 mb-6">
@@ -313,7 +345,7 @@ const AddProducts = () => {
                     </div>
                     <div>
                       <span className="text-xl font-medium text-gray-700 group-hover:text-blue-600">
-                        Upload Product Images
+                        Upload Additional Images
                       </span>
                       <p className="text-gray-500 mt-1">
                         PNG, JPG, WEBP up to 10MB
@@ -330,26 +362,58 @@ const AddProducts = () => {
                 </div>
 
                 {/* Image Preview */}
-                {previewUrls.length > 0 && (
+                {(existingImages.length > 0 || newImages.length > 0) && (
                   <div className="space-y-4">
                     <h4 className="font-medium text-gray-700">
-                      Image Preview ({previewUrls.length})
+                      Product Images ({totalImages})
                     </h4>
+
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                      {previewUrls.map((url, idx) => (
+                      {/* Existing Images */}
+                      {existingImages.map((imageUrl, idx) => (
                         <div
-                          key={idx}
+                          key={`existing-${idx}`}
                           className="relative group aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
                         >
                           <img
-                            src={url}
-                            alt={`Preview ${idx + 1}`}
+                            src={getImageUrl(imageUrl)}
+                            alt={`Existing ${idx + 1}`}
                             className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
                           />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
+                          <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
+                          <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                            Existing
+                          </div>
                           <button
                             type="button"
-                            onClick={() => handleRemoveImage(idx)}
+                            onClick={() =>
+                              handleRemoveExistingImage(imageUrl, idx)
+                            }
+                            className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transform hover:scale-110 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* New Images */}
+                      {newImagePreviews.map((previewUrl, idx) => (
+                        <div
+                          key={`new-${idx}`}
+                          className="relative group aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
+                        >
+                          <img
+                            src={previewUrl}
+                            alt={`New ${idx + 1}`}
+                            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
+                          <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                            New
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveNewImage(idx)}
                             className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transform hover:scale-110 transition-all duration-200 opacity-0 group-hover:opacity-100"
                           >
                             <X className="w-4 h-4" />
@@ -357,9 +421,25 @@ const AddProducts = () => {
                         </div>
                       ))}
                     </div>
+
+                    {/* Image Summary */}
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Existing: {existingImages.length}</span>
+                        <span>New: {newImages.length}</span>
+                        <span>Total: {totalImages}</span>
+                        {removedImages.length > 0 && (
+                          <span className="text-red-500">
+                            Removed: {removedImages.length}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
-              </div>{" "}
+              </div>
+
+              {/* Trending Product Section */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-2 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
@@ -385,7 +465,9 @@ const AddProducts = () => {
                     <span className="text-gray-700">Mark as Trending</span>
                   </div>
                 </div>
-              </div>{" "}
+              </div>
+
+              {/* Payment Mode Section */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-2 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
@@ -399,12 +481,10 @@ const AddProducts = () => {
                     Select Payment Mode
                   </label>
                   <select
-                    name="paymentMode"
+                    name="paymentMethods"
                     value={formData.paymentMethods}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl 
-               focus:ring-2 focus:ring-blue-500 focus:border-transparent 
-               transition-all duration-200 bg-gray-50 hover:bg-white"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                     required
                   >
                     <option value="cod">Cash on Delivery (COD)</option>
@@ -422,7 +502,7 @@ const AddProducts = () => {
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-4 px-8 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3"
               >
                 <Upload className="w-6 h-6" />
-                Add Product to Inventory
+                Update Product in Inventory
               </button>
             </div>
           </form>
@@ -432,4 +512,4 @@ const AddProducts = () => {
   );
 };
 
-export default AddProducts;
+export default EditProduct;

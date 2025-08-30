@@ -25,6 +25,8 @@ import { toast } from "sonner";
 import { getImageUrl } from "@/app/utils/getImageUrl";
 import SidebarForm from "../../components/SidebarForm";
 import AddProducts from "../../components/addproduct";
+import EditProduct from "../../components/editProduct";
+import ProductPreviewModal from "../../components/viewproducts";
 
 export default function AdminProductsPage() {
   const dispatch = useAppDispatch();
@@ -51,6 +53,9 @@ export default function AdminProductsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
   const limit = 10;
+  // Modal state
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (error) toast.error(error);
@@ -97,6 +102,15 @@ export default function AdminProductsPage() {
     purchasable,
     showStockOut,
   ]);
+  const handleViewProduct = (product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
+  };
 
   const handleDelete = (id: number) => {
     if (confirm("Are you sure to delete this product?")) {
@@ -546,16 +560,25 @@ export default function AdminProductsPage() {
                       <div className="flex items-center justify-center space-x-2">
                         <button
                           title="View"
+                          onClick={() => handleViewProduct(product)}
                           className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
                         >
                           <Eye size={16} />
                         </button>
-                        <button
-                          title="Edit"
-                          className="p-2 bg-amber-100 text-amber-600 rounded-lg hover:bg-amber-200 transition-colors"
+                        <SidebarForm
+                          title="Edit Product"
+                          trigger={
+                            <button
+                              title="Edit"
+                              className="p-2 bg-amber-100 text-amber-600 rounded-lg hover:bg-amber-200 transition-colors"
+                            >
+                              <Edit size={16} />
+                            </button>
+                          }
                         >
-                          <Edit size={16} />
-                        </button>
+                          <EditProduct productId={product.id} />
+                        </SidebarForm>
+
                         <button
                           title="Delete"
                           onClick={() => handleDelete(product.id)}
@@ -645,6 +668,11 @@ export default function AdminProductsPage() {
           </div>
         )}
       </div>
+      <ProductPreviewModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+      />
     </div>
   );
 }

@@ -71,11 +71,11 @@ const EditOrder: React.FC<EditOrderProps> = ({ orderId, onClose }) => {
         await dispatch(updateOrder({ orderId, orderData: formData })).unwrap();
 
         // Call onClose if provided, otherwise navigate back
-        if (onClose) {
-          onClose();
-        } else {
-          router.push("/admin/orders");
-        }
+        // if (onClose) {
+        //   onClose();
+        // } else {
+        //   router.push("/admin/orders");
+        // }
       }
     } catch (err: any) {
       setUpdateError(err.message || "Failed to update order");

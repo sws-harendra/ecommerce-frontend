@@ -129,7 +129,7 @@ export const getTrendingProduct = createAsyncThunk(
 
 // Initial State
 const initialState: ProductState = {
-  products: null,
+  products: [],
   product: null,
   trendingProducts: [],
   status: "idle", // idle | loading | succeeded | failed
@@ -225,17 +225,37 @@ const productSlice = createSlice({
       })
 
       // Update
+      // ✅ Update
       .addCase(updateProduct.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products = state.products.map((p) =>
-          p.id === action.payload.id ? action.payload : p
-        );
+
+        if (Array.isArray(state.products)) {
+          // case: products is just an array
+          state.products = state.products.map((p) =>
+            p.id === action.payload.id ? action.payload : p
+          );
+        } else if (state.products && Array.isArray(state.products.products)) {
+          // case: products is object { products: [], total: X }
+          state.products.products = state.products.products.map((p) =>
+            p.id === action.payload.id ? action.payload : p
+          );
+        }
       })
 
-      // Delete
+      // ✅ Delete
       .addCase(deleteProduct.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products = state.products.filter((p) => p.id !== action.meta.arg);
+
+        if (Array.isArray(state.products)) {
+          state.products = state.products.filter(
+            (p) => p.id !== action.meta.arg
+          );
+        } else if (state.products && Array.isArray(state.products.products)) {
+          state.products.products = state.products.products.filter(
+            (p) => p.id !== action.meta.arg
+          );
+          state.products.total = state.products.products.length; // keep total in sync
+        }
       });
   },
 });
