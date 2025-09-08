@@ -10,6 +10,7 @@ import dashboardReducer from "./features/dashboardSlice";
 import userReducer from "./features/userSlice";
 import sectionReducer from "./features/sectionSlice";
 import categoryReducer from "./features/categorySlice";
+import videoReducer from "./features/video.slice";
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
     users: userReducer, // all users (admin side)\
     section: sectionReducer,
     category: categoryReducer,
+    video: videoReducer,
   },
   devTools: process.env.NEXT_PUBLIC_NODE_ENV !== "production", // ✅ disable in prod
 });

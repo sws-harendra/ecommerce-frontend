@@ -19,6 +19,7 @@ import { getImageUrl } from "@/app/utils/getImageUrl";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { slugify } from "@/app/utils/slugify";
+import { categoryService } from "@/app/sercices/category.service";
 
 // Product Card Component
 interface ProductCardProps {
@@ -240,15 +241,20 @@ const FilterSidebar = ({
   rating,
   setRating,
 }) => {
-  const categories = [
-    "All",
-    "Electronics",
-    "Fashion",
-    "Books",
-    "Home & Garden",
-    "Sports",
-    "Beauty",
-  ];
+  const [categories, setCategories] = useState();
+  // ✅ fetch categories once
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await categoryService.getAllCategories();
+        console.log(res);
+        if (res.success) setCategories(res.categories);
+      } catch (err) {
+        console.error("Failed to load categories", err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <>
@@ -282,26 +288,25 @@ const FilterSidebar = ({
           <div className="mb-8">
             <h3 className="font-semibold text-gray-900 mb-4">Category</h3>
             <div className="space-y-2">
-              {categories.map((cat) => (
-                <label
-                  key={cat}
-                  className="flex items-center cursor-pointer group"
-                >
-                  <input
-                    type="radio"
-                    name="category"
-                    value={cat === "All" ? "" : cat.toLowerCase()}
-                    checked={
-                      category === (cat === "All" ? "" : cat.toLowerCase())
-                    }
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-gray-700 group-hover:text-blue-600 transition-colors">
-                    {cat}
-                  </span>
-                </label>
-              ))}
+              {categories &&
+                categories.map((cat) => (
+                  <label
+                    key={cat.id}
+                    className="flex items-center cursor-pointer group"
+                  >
+                    <input
+                      type="radio"
+                      name="category"
+                      value={cat.name.toLowerCase()}
+                      checked={category === cat.name.toLowerCase()}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <span className="ml-3 text-gray-700 group-hover:text-blue-600 transition-colors">
+                      {cat.name}
+                    </span>
+                  </label>
+                ))}
             </div>
           </div>
 

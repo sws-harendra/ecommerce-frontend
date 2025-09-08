@@ -12,6 +12,7 @@ import {
   X,
   LogOut,
   PackagePlusIcon,
+  Video,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // ✅ for navigation
@@ -24,6 +25,11 @@ const menuItems = [
   { name: "Products", icon: Package, href: "/admin/dashboard/products" },
   { name: "Orders", icon: ShoppingBag, href: "/admin/dashboard/orders" },
   { name: "Users", icon: Users, href: "/admin/dashboard/users" },
+  {
+    name: "Video Management",
+    icon: Video,
+    href: "/admin/dashboard/video-management",
+  },
   {
     name: "Banners",
     icon: Banknote,

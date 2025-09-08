@@ -8,10 +8,30 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Heading from "@/app/commonComponents/heading";
 import Loader from "@/app/commonComponents/loader";
-import { BugPlayIcon, ShoppingBag, ShoppingCart, Wallet } from "lucide-react";
+import {
+  BugPlayIcon,
+  Share,
+  Share2,
+  ShoppingBag,
+  ShoppingCart,
+  Wallet,
+  Copy,
+} from "lucide-react";
 import { addToCart } from "@/app/lib/store/features/cartSlice";
 import { useAppDispatch } from "@/app/lib/store/store";
 import { useRouter } from "next/navigation";
+import {
+  FacebookShareButton,
+  TwitterShareButton,
+  WhatsappShareButton,
+  LinkedinShareButton,
+  FacebookIcon,
+  TwitterIcon,
+  WhatsappIcon,
+  LinkedinIcon,
+} from "react-share";
+import { slugify } from "@/app/utils/slugify";
+import { toast } from "sonner";
 
 interface ProductDetailClientProps {
   product: Product;
@@ -27,6 +47,18 @@ export default function ProductDetailClient({
   const [mounted, setMounted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const dispatch = useAppDispatch(); // ✅ typed dispatch
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast("copied");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy!", err);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -36,6 +68,10 @@ export default function ProductDetailClient({
     return <Loader />;
   }
 
+  const shareUrl = `http://heritagehand.in/products/${slugify(product.name)}/${
+    product.id
+  }`; // dynamic link here
+  const title = "Check out this product!";
   return (
     <div className="min-h-screen pb-10 bg-gradient-to-br from-slate-50 via-gray-200 to-blue-50">
       {/* Animated Background Elements */}
@@ -149,10 +185,47 @@ export default function ProductDetailClient({
           <div className="space-y-5 animate-fade-in-right">
             {/* Header */}
             <div className="space-y-4">
-              <div className="inline-block">
+              <div className=" flex flex-row justify-between">
                 <span className="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full">
                   {product.Category?.name || "Uncategorized"}
                 </span>
+                <div className="relative inline-block">
+                  <button
+                    onClick={() => setOpen(!open)}
+                    className="p-2 rounded-full hover:bg-gray-100"
+                  >
+                    <Share2 />
+                  </button>
+
+                  {open && (
+                    <div className="absolute top-10 right-0 bg-white shadow-lg rounded-lg p-3 flex gap-2 z-50">
+                      <FacebookShareButton url={shareUrl} quote={title}>
+                        <FacebookIcon size={32} round />
+                      </FacebookShareButton>
+                      <TwitterShareButton url={shareUrl} title={title}>
+                        <TwitterIcon size={32} round />
+                      </TwitterShareButton>
+                      <WhatsappShareButton url={shareUrl} title={title}>
+                        <WhatsappIcon size={32} round />
+                      </WhatsappShareButton>
+                      <LinkedinShareButton url={shareUrl}>
+                        <LinkedinIcon size={32} round />
+                      </LinkedinShareButton>
+
+                      {/* Copy Link */}
+                      <button
+                        onClick={handleCopy}
+                        className="p-1 bg-gray-100 rounded-full hover:bg-gray-200"
+                        title="Copy link"
+                      >
+                        <Copy size={28} />
+                      </button>
+                      {/* {copied && (
+                        <span className="text-xs text-green-600">Copied!</span>
+                      )} */}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent leading-tight">

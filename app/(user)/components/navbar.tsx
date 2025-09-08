@@ -31,6 +31,8 @@ export default function EcommerceNavbar() {
   const { isAuthenticated, user, status } = useAppSelector(
     (state: RootState) => state.auth // ✅ typed state
   );
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     dispatch(fetchCategories());

@@ -1,6 +1,7 @@
 "use client";
 import { brandName } from "@/app/contants";
 import Link from "next/link";
+import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -12,6 +13,36 @@ export default function Footer() {
           <p className="mt-3 text-sm">
             Your trusted destination for quality products at the best prices.
           </p>
+          <div className="flex flex-row my-5 gap-2 space-x-4 text-gray-400">
+            <a
+              href="http://heritagehand.in"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Facebook className="w-6 h-6 hover:text-blue-600 cursor-pointer" />
+            </a>
+            <a
+              href="http://heritagehand.in"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Twitter className="w-6 h-6 hover:text-blue-400 cursor-pointer" />
+            </a>
+            <a
+              href="http://heritagehand.in"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Instagram className="w-6 h-6 hover:text-pink-500 cursor-pointer" />
+            </a>
+            <a
+              href="http://heritagehand.in"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Linkedin className="w-6 h-6 hover:text-blue-700 cursor-pointer" />
+            </a>
+          </div>
         </div>
 
         {/* Shop Links */}
