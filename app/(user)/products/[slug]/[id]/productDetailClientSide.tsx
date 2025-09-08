@@ -158,7 +158,7 @@ export default function ProductDetailClient({
             {/* Thumbnail Gallery */}
             {product.images && product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-3">
-                {product.images.slice(0, 4).map((image, index) => (
+                {product.images.slice(0, 8).map((image, index) => (
                   <div
                     key={index}
                     className={`group aspect-square relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-fade-in-up ${

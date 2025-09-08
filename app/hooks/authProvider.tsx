@@ -38,10 +38,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       "/authentication/register",
       "/",
       "/cart",
+      "/artists",
     ];
 
     // also allow dynamic product pages
-    const publicPatterns = [/^\/products\/.*/];
+    const publicPatterns = [/^\/products\/.*/, /^\/artists\/.*/];
 
     const isPublic =
       publicPages.includes(pathname) ||

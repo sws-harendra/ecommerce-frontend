@@ -11,6 +11,7 @@ import userReducer from "./features/userSlice";
 import sectionReducer from "./features/sectionSlice";
 import categoryReducer from "./features/categorySlice";
 import videoReducer from "./features/video.slice";
+import artistReducer from "./features/artistSlice";
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     section: sectionReducer,
     category: categoryReducer,
     video: videoReducer,
+    artist: artistReducer,
   },
   devTools: process.env.NEXT_PUBLIC_NODE_ENV !== "production", // ✅ disable in prod
 });

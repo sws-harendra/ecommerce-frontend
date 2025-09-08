@@ -6,6 +6,7 @@ import ShopByCategory from "./shop-by-category/page";
 import AllSections from "./components/allSections";
 import VideoProduct from "./components/videoProduct";
 import AboutUs from "./components/aboutUs";
+import AllArtistsHomePage from "./components/artists";
 
 const HomePage = () => {
   return (
@@ -15,6 +16,7 @@ const HomePage = () => {
 
       <TrendingProducts />
       <AllSections />
+      <AllArtistsHomePage />
       <AboutUs />
       {/* <ShopByCategory /> */}
     </div>

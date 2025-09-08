@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useAppDispatch } from "@/app/lib/store/store";
+import { useAppDispatch, useAppSelector } from "@/app/lib/store/store";
 import { createProduct } from "@/app/lib/store/features/productSlice";
 import { toast } from "sonner";
 import {
@@ -15,6 +15,7 @@ import {
   IndianRupee,
 } from "lucide-react";
 import { categoryService } from "@/app/sercices/category.service";
+import { fetchArtists } from "@/app/lib/store/features/artistSlice";
 
 interface Category {
   id: number;
@@ -35,10 +36,17 @@ const AddProducts = () => {
     stock: "",
     trendingProduct: false, // ✅ added
     paymentMethods: "both", // ✅ default
+    artistId: "",
   });
 
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+
+  const { artists, status } = useAppSelector((state) => state.artist);
+
+  useEffect(() => {
+    if (status === "idle") dispatch(fetchArtists());
+  }, [dispatch, status]);
 
   // ✅ fetch categories once
   useEffect(() => {
@@ -97,6 +105,7 @@ const AddProducts = () => {
       data.append("discountPrice", formData.discountPrice);
       data.append("stock", formData.stock);
       data.append("trending_product", String(formData.trendingProduct));
+      data.append("artistId", formData.artistId);
       data.append("paymentMethods", formData.paymentMethods);
       images.forEach((file) => data.append("images", file));
 
@@ -399,7 +408,7 @@ const AddProducts = () => {
                     Select Payment Mode
                   </label>
                   <select
-                    name="paymentMode"
+                    name="paymentMethods"
                     value={formData.paymentMethods}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl 
@@ -410,6 +419,36 @@ const AddProducts = () => {
                     <option value="cod">Cash on Delivery (COD)</option>
                     <option value="online">Online Payment</option>
                     <option value="both">Both COD & Online</option>
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-2 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    Artist
+                  </h3>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Artist
+                  </label>
+                  <select
+                    name="artistId"
+                    value={formData.artistId}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl 
+               focus:ring-2 focus:ring-blue-500 focus:border-transparent 
+               transition-all duration-200 bg-gray-50 hover:bg-white"
+                    required
+                  >
+                    <option value="">Select Artist</option>
+                    {artists.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
