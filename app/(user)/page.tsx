@@ -7,6 +7,7 @@ import AllSections from "./components/allSections";
 import VideoProduct from "./components/videoProduct";
 import AboutUs from "./components/aboutUs";
 import AllArtistsHomePage from "./components/artists";
+import AllBlogsHomePage from "./components/blogs";
 
 const HomePage = () => {
   return (
@@ -17,6 +18,7 @@ const HomePage = () => {
       <TrendingProducts />
       <AllSections />
       <AllArtistsHomePage />
+      <AllBlogsHomePage />
       <AboutUs />
       {/* <ShopByCategory /> */}
     </div>

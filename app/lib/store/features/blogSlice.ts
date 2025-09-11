@@ -30,13 +30,13 @@ const initialState: BlogState = {
 // Helper function to convert BlogPost to FormData
 const createFormDataFromPost = (postData: Partial<BlogPost>): FormData => {
   const formData = new FormData();
-  
+
   Object.entries(postData).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       formData.append(key, value);
     }
   });
-  
+
   return formData;
 };
 
@@ -167,7 +167,6 @@ const blogSlice = createSlice({
       state.status = "loading";
       state.error = null;
     });
-
   },
 });
 

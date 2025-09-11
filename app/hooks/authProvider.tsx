@@ -42,7 +42,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     ];
 
     // also allow dynamic product pages
-    const publicPatterns = [/^\/products\/.*/, /^\/artists\/.*/];
+    const publicPatterns = [
+      /^\/products\/.*/,
+      /^\/artists\/.*/,
+      /^\/blogs\/\d+\/?.*$/,
+    ];
 
     const isPublic =
       publicPages.includes(pathname) ||

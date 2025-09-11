@@ -8,8 +8,8 @@ export const blogService = {
   },
 
   // Get single blog post by ID
-  getBlogById: async (id: string) => {
-    const response = await axiosInstance.get(`/admin/blogs/${id}`);
+  getBlogById: async (slug: string) => {
+    const response = await axiosInstance.get(`/admin/blogs/${slug}`);
     return response.data;
   },
 
