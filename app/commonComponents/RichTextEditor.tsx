@@ -5,7 +5,10 @@ import StarterKit from "@tiptap/starter-kit";
 import Heading from "@tiptap/extension-heading";
 import Blockquote from "@tiptap/extension-blockquote";
 import CodeBlock from "@tiptap/extension-code-block";
-import { useCallback } from "react";
+import Image from "@tiptap/extension-image";
+import { useRef } from "react";
+import { blogService } from "../sercices/user/blog.service";
+import { getImageUrl } from "../utils/getImageUrl";
 
 function MenuButton({
   onClick,
@@ -38,6 +41,8 @@ export default function RichTextEditor({
   value?: string;
   onChange?: (html: string) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -46,6 +51,7 @@ export default function RichTextEditor({
       Heading.configure({ levels: [1, 2, 3] }),
       Blockquote,
       CodeBlock,
+      Image,
     ],
     content: value || "<p>Write something...</p>",
     immediatelyRender: false,
@@ -67,6 +73,31 @@ export default function RichTextEditor({
   const setCodeBlock = () => editor?.chain().focus().toggleCodeBlock().run();
   const undo = () => editor?.chain().focus().undo().run();
   const redo = () => editor?.chain().focus().redo().run();
+
+  // Image upload handler
+  const addImage = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await blogService.uploadImage(file);
+    console.log("url,", res);
+    if (res.url) {
+      editor
+        ?.chain()
+        .focus()
+        .setImage({ src: getImageUrl(res.url) })
+        .run();
+    }
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) addImage(file);
+  };
 
   if (!editor) return null;
 
@@ -126,6 +157,14 @@ export default function RichTextEditor({
         />
         <MenuButton onClick={undo} label="↺ Undo" />
         <MenuButton onClick={redo} label="↻ Redo" />
+        <MenuButton onClick={handleImageClick} label="🖼 Image" />
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept="image/*"
+          className="hidden"
+        />
       </div>
 
       {/* Editor */}

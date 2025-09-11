@@ -14,6 +14,7 @@ import {
   PackagePlusIcon,
   Video,
   PaintBucket,
+  Pen,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // ✅ for navigation
@@ -56,6 +57,11 @@ const menuItems = [
     name: "Add Pages",
     icon: PackagePlusIcon,
     href: "/admin/dashboard/staticpages",
+  },
+  {
+    name: "Blogs",
+    icon: Pen,
+    href: "/admin/dashboard/blogs",
   },
   {
     name: "Logout",
