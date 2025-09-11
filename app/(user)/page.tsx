@@ -8,6 +8,7 @@ import VideoProduct from "./components/videoProduct";
 import AboutUs from "./components/aboutUs";
 import AllArtistsHomePage from "./components/artists";
 import AllBlogsHomePage from "./components/blogs";
+import MediaCoveragePage from "./components/mediaCoverage";
 
 const HomePage = () => {
   return (
@@ -19,6 +20,7 @@ const HomePage = () => {
       <AllSections />
       <AllArtistsHomePage />
       <AllBlogsHomePage />
+      <MediaCoveragePage />
       <AboutUs />
       {/* <ShopByCategory /> */}
     </div>

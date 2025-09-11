@@ -15,6 +15,7 @@ import {
   Video,
   PaintBucket,
   Pen,
+  Camera,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // ✅ for navigation
@@ -59,6 +60,11 @@ const menuItems = [
     href: "/admin/dashboard/staticpages",
   },
   {
+    name: "Media Coverage",
+    icon: Camera,
+    href: "/admin/dashboard/media-coverage",
+  },
+  {
     name: "Blogs",
     icon: Pen,
     href: "/admin/dashboard/blogs",
@@ -89,7 +95,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="flex">
+    <div className="flex overflow-y-auto overflow-x-hidden h-full bg-gray-900">
       {/* Sidebar */}
       <div
         className={`${
@@ -114,8 +120,8 @@ export default function Sidebar() {
         </h1>
 
         {/* Menu Items */}
-        <ul className="space-y-4">
-          {menuItems.map((item, idx) => (
+        <ul className="space-y-4 ">
+        {menuItems.map((item, idx) => (
             <li key={idx}>
               {item.isLogout ? (
                 <button
