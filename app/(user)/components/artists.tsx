@@ -24,7 +24,7 @@ const AllArtistsHomePage = () => {
   if (!artists || artists.length === 0) return null;
 
   return (
-    <div className="p-4">
+    <div className="py-4 px-12">
       <div className="flex items-center justify-between mb-4">
         <Heading title="Artists" />
         <Link href={"/artists"}>

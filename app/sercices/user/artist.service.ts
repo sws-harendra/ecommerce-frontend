@@ -18,6 +18,11 @@ export const artistService = {
     return res.data;
   },
 
+  featuredArtist: async (): Promise<Artist> => {
+    const res = await axiosInstance.get("/artist/featuredArtists");
+    return res.data;
+  },
+
   updateArtist: async (id: number, data: FormData): Promise<Artist> => {
     const res = await axiosInstance.put(`/artist/${id}`, data);
     return res.data;

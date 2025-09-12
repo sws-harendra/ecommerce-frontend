@@ -9,6 +9,8 @@ import AboutUs from "./components/aboutUs";
 import AllArtistsHomePage from "./components/artists";
 import AllBlogsHomePage from "./components/blogs";
 import MediaCoveragePage from "./components/mediaCoverage";
+import TestimonialCarousel from "./components/testimonials";
+import FeaturedArtists from "./components/featuredArtists";
 
 const HomePage = () => {
   return (
@@ -18,9 +20,12 @@ const HomePage = () => {
 
       <TrendingProducts />
       <AllSections />
-      <AllArtistsHomePage />
+      <FeaturedArtists />
+      <TestimonialCarousel />
       <AllBlogsHomePage />
       <MediaCoveragePage />
+      <AllArtistsHomePage />
+
       <AboutUs />
       {/* <ShopByCategory /> */}
     </div>

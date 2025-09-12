@@ -16,6 +16,7 @@ import {
   PaintBucket,
   Pen,
   Camera,
+  Star,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // ✅ for navigation
@@ -70,6 +71,11 @@ const menuItems = [
     href: "/admin/dashboard/blogs",
   },
   {
+    name: "Testimonial",
+    icon: Star,
+    href: "/admin/dashboard/testimonials",
+  },
+  {
     name: "Logout",
     icon: LogOut,
     href: "/authentication/login",
@@ -121,7 +127,7 @@ export default function Sidebar() {
 
         {/* Menu Items */}
         <ul className="space-y-4 ">
-        {menuItems.map((item, idx) => (
+          {menuItems.map((item, idx) => (
             <li key={idx}>
               {item.isLogout ? (
                 <button
