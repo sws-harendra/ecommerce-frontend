@@ -11,9 +11,11 @@ import {
   Tag,
   IndianRupee,
   Archive,
+  Video,
 } from "lucide-react";
 import { categoryService } from "@/app/sercices/category.service";
 import { getImageUrl } from "@/app/utils/getImageUrl";
+import { isImageFile, isVideoFile } from "@/app/utils/getMediaType";
 
 interface Category {
   id: number;
@@ -46,7 +48,13 @@ const EditProduct: React.FC<EditProductProps> = ({ productId }) => {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [removedImages, setRemovedImages] = useState<string[]>([]);
   const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
-
+  // Replace image-specific states with media states
+  const [newMedia, setNewMedia] = useState<File[]>([]);
+  const [existingMedia, setExistingMedia] = useState<string[]>([]);
+  const [removedMedia, setRemovedMedia] = useState<string[]>([]);
+  const [newMediaPreviews, setNewMediaPreviews] = useState<
+    { url: string; type: "image" | "video" }[]
+  >([]);
   // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
@@ -60,6 +68,7 @@ const EditProduct: React.FC<EditProductProps> = ({ productId }) => {
     fetchCategories();
   }, []);
 
+  // Load product data
   // Load product data
   useEffect(() => {
     const product = products.products.find((p) => p.id === productId);
@@ -78,11 +87,11 @@ const EditProduct: React.FC<EditProductProps> = ({ productId }) => {
         paymentMethods: product.paymentMethods || "both",
       });
 
-      // Set existing images
-      setExistingImages(product.images || []);
-      setRemovedImages([]);
-      setNewImages([]);
-      setNewImagePreviews([]);
+      // Set existing media (both images and videos)
+      setExistingMedia(product.images || []);
+      setRemovedMedia([]);
+      setNewMedia([]);
+      setNewMediaPreviews([]);
     }
   }, [productId, products]);
 
@@ -94,17 +103,49 @@ const EditProduct: React.FC<EditProductProps> = ({ productId }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      setNewImages((prev) => [...prev, ...files]);
+      setNewMedia((prev) => [...prev, ...files]);
 
-      // Create previews for new images
-      const newPreviews = files.map((file) => URL.createObjectURL(file));
-      setNewImagePreviews((prev) => [...prev, ...newPreviews]);
+      // Create previews for new media
+      const newPreviews = files.map((file) => {
+        const type = file.type.startsWith("video/") ? "video" : "image";
+        const previewUrl = type === "image" ? URL.createObjectURL(file) : "";
+        return { url: previewUrl, type };
+      });
+      setNewMediaPreviews((prev) => [...prev, ...newPreviews]);
     }
   };
 
+  const handleRemoveExistingMedia = (mediaPath: string, index: number) => {
+    // Move from existing to removed
+    setExistingMedia((prev) => prev.filter((_, i) => i !== index));
+    setRemovedMedia((prev) => [...prev, mediaPath]);
+  };
+
+  const handleRemoveNewMedia = (index: number) => {
+    // Remove from new media
+    setNewMedia((prev) => prev.filter((_, i) => i !== index));
+
+    // Clean up preview URL and remove from previews
+    const previewToRemove = newMediaPreviews[index];
+    if (previewToRemove && previewToRemove.type === "image") {
+      URL.revokeObjectURL(previewToRemove.url);
+    }
+    setNewMediaPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Clean up preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      newMediaPreviews.forEach((preview) => {
+        if (preview.type === "image") {
+          URL.revokeObjectURL(preview.url);
+        }
+      });
+    };
+  }, []);
   const handleRemoveExistingImage = (imageUrl: string, index: number) => {
     // Move from existing to removed
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
@@ -139,20 +180,20 @@ const EditProduct: React.FC<EditProductProps> = ({ productId }) => {
       data.append("name", formData.name);
       data.append("description", formData.description);
       data.append("categoryId", formData.categoryId);
-      data.append("tags", formData.tags); // Send as simple comma-separated string
+      data.append("tags", formData.tags);
       data.append("originalPrice", formData.originalPrice);
       data.append("discountPrice", formData.discountPrice);
       data.append("stock", formData.stock);
       data.append("trending_product", String(formData.trendingProduct));
       data.append("paymentMethods", formData.paymentMethods);
 
-      // Add image management data
-      data.append("existingImages", JSON.stringify(existingImages));
-      data.append("removedImages", JSON.stringify(removedImages));
+      // Add media management data (updated field names)
+      data.append("existingMedia", JSON.stringify(existingMedia));
+      data.append("removedMedia", JSON.stringify(removedMedia));
 
-      // Add new image files
-      newImages.forEach((file) => {
-        data.append("images", file);
+      // Add new media files
+      newMedia.forEach((file) => {
+        data.append("media", file); // Changed from "images" to "media"
       });
 
       await dispatch(updateProduct({ id: productId, data })).unwrap();
@@ -163,7 +204,7 @@ const EditProduct: React.FC<EditProductProps> = ({ productId }) => {
   };
 
   // Calculate total images for display
-  const totalImages = existingImages.length + newImages.length;
+  const totalMedia = existingMedia.length + newMedia.length;
 
   return (
     <div className="min-h-screen py-2 px-1">
@@ -338,135 +379,180 @@ const EditProduct: React.FC<EditProductProps> = ({ productId }) => {
                 </div>
 
                 {/* Upload Area */}
-                <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 cursor-pointer group">
-                  <label className="flex flex-col items-center space-y-4 cursor-pointer">
-                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <ImagePlus className="w-8 h-8 text-white" />
-                    </div>
-                    <div>
-                      <span className="text-xl font-medium text-gray-700 group-hover:text-blue-600">
-                        Upload Additional Images
-                      </span>
-                      <p className="text-gray-500 mt-1">
-                        PNG, JPG, WEBP up to 10MB
-                      </p>
-                    </div>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
+                {/* Media Upload Section */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-2 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                    <h3 className="text-xl font-semibold text-gray-800">
+                      Product Media
+                    </h3>
+                  </div>
 
-                {/* Image Preview */}
-                {(existingImages.length > 0 || newImages.length > 0) && (
-                  <div className="space-y-4">
-                    <h4 className="font-medium text-gray-700">
-                      Product Images ({totalImages})
-                    </h4>
+                  {/* Upload Area */}
+                  <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 cursor-pointer group">
+                    <label className="flex flex-col items-center space-y-4 cursor-pointer">
+                      <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <ImagePlus className="w-8 h-8 text-white" />
+                      </div>
+                      <div>
+                        <span className="text-xl font-medium text-gray-700 group-hover:text-blue-600">
+                          Upload Additional Media
+                        </span>
+                        <p className="text-gray-500 mt-1">
+                          PNG, JPG, WEBP, MP4 up to 50MB
+                        </p>
+                      </div>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*,video/*" // Accept both images and videos
+                        onChange={handleMediaChange}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                      {/* Existing Images */}
-                      {existingImages.map((imageUrl, idx) => (
-                        <div
-                          key={`existing-${idx}`}
-                          className="relative group aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
-                        >
-                          <img
-                            src={getImageUrl(imageUrl)}
-                            alt={`Existing ${idx + 1}`}
-                            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
-                          />
-                          <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
-                          <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                            Existing
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleRemoveExistingImage(imageUrl, idx)
-                            }
-                            className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transform hover:scale-110 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                  {/* Media Preview */}
+                  {(existingMedia.length > 0 || newMedia.length > 0) && (
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-gray-700">
+                        Product Media ({totalMedia})
+                      </h4>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {/* Existing Media */}
+                        {existingMedia.map((mediaPath, idx) => {
+                          const isImage = isImageFile(mediaPath);
+                          const isVideo = isVideoFile(mediaPath);
+
+                          return (
+                            <div
+                              key={`existing-${idx}`}
+                              className="relative group aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
+                            >
+                              {isImage ? (
+                                <img
+                                  src={getImageUrl(mediaPath)}
+                                  alt={`Existing ${idx + 1}`}
+                                  className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
+                                />
+                              ) : isVideo ? (
+                                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                  <Video className="w-8 h-8 text-gray-500" />
+                                  <span className="sr-only">Video file</span>
+                                </div>
+                              ) : (
+                                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                  <span className="text-gray-500 text-sm">
+                                    Unsupported
+                                  </span>
+                                </div>
+                              )}
+                              <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
+                              <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                                Existing
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleRemoveExistingMedia(mediaPath, idx)
+                                }
+                                className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transform hover:scale-110 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                              {isVideo && (
+                                <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                                  Video
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        {/* New Media */}
+                        {newMediaPreviews.map((preview, idx) => (
+                          <div
+                            key={`new-${idx}`}
+                            className="relative group aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
                           >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-
-                      {/* New Images */}
-                      {newImagePreviews.map((previewUrl, idx) => (
-                        <div
-                          key={`new-${idx}`}
-                          className="relative group aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
-                        >
-                          <img
-                            src={previewUrl}
-                            alt={`New ${idx + 1}`}
-                            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
-                          />
-                          <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
-                          <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                            New
+                            {preview.type === "image" ? (
+                              <img
+                                src={preview.url}
+                                alt={`New ${idx + 1}`}
+                                className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                <Video className="w-8 h-8 text-gray-500" />
+                                <span className="sr-only">Video file</span>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
+                            <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                              New
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveNewMedia(idx)}
+                              className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transform hover:scale-110 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                            {preview.type === "video" && (
+                              <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                                Video
+                              </div>
+                            )}
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveNewImage(idx)}
-                            className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transform hover:scale-110 transition-all duration-200 opacity-0 group-hover:opacity-100"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
 
-                    {/* Image Summary */}
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <div className="flex justify-between text-sm text-gray-600">
-                        <span>Existing: {existingImages.length}</span>
-                        <span>New: {newImages.length}</span>
-                        <span>Total: {totalImages}</span>
-                        {removedImages.length > 0 && (
-                          <span className="text-red-500">
-                            Removed: {removedImages.length}
-                          </span>
-                        )}
+                      {/* Media Summary */}
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Existing: {existingMedia.length}</span>
+                          <span>New: {newMedia.length}</span>
+                          <span>Total: {totalMedia}</span>
+                          {removedMedia.length > 0 && (
+                            <span className="text-red-500">
+                              Removed: {removedMedia.length}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Trending Product Section */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-2 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
-                  <h3 className="text-xl font-semibold text-gray-800">
-                    Trending Product
-                  </h3>
+                  )}
                 </div>
 
-                <div className="relative">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      name="trendingProduct"
-                      checked={formData.trendingProduct}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          trendingProduct: e.target.checked,
-                        })
-                      }
-                      className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-gray-700">Mark as Trending</span>
+                {/* Trending Product Section */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-2 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                    <h3 className="text-xl font-semibold text-gray-800">
+                      Trending Product
+                    </h3>
+                  </div>
+
+                  <div className="relative">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        name="trendingProduct"
+                        checked={formData.trendingProduct}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            trendingProduct: e.target.checked,
+                          })
+                        }
+                        className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-700">Mark as Trending</span>
+                    </div>
                   </div>
                 </div>
               </div>
-
               {/* Payment Mode Section */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3 mb-6">

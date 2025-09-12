@@ -13,6 +13,7 @@ import {
   Archive,
   TrendingUpIcon,
   IndianRupee,
+  Video,
 } from "lucide-react";
 import { categoryService } from "@/app/sercices/category.service";
 import { fetchArtists } from "@/app/lib/store/features/artistSlice";
@@ -20,6 +21,12 @@ import { fetchArtists } from "@/app/lib/store/features/artistSlice";
 interface Category {
   id: number;
   name: string;
+}
+
+interface MediaFile {
+  file: File;
+  type: "image" | "video";
+  previewUrl: string;
 }
 
 const AddProducts = () => {
@@ -34,13 +41,12 @@ const AddProducts = () => {
     originalPrice: "",
     discountPrice: "",
     stock: "",
-    trendingProduct: false, // ✅ added
-    paymentMethods: "both", // ✅ default
+    trendingProduct: false,
+    paymentMethods: "both",
     artistId: "",
   });
 
-  const [images, setImages] = useState<File[]>([]);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
 
   const { artists, status } = useAppSelector((state) => state.artist);
 
@@ -70,26 +76,29 @@ const AddProducts = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      const updatedFiles = [...images, ...newFiles];
-      setImages(updatedFiles);
 
-      // ✅ revoke old URLs to avoid memory leaks
-      previewUrls.forEach((url) => URL.revokeObjectURL(url));
-      const urls = updatedFiles.map((file) => URL.createObjectURL(file));
-      setPreviewUrls(urls);
+      const newMediaFiles: MediaFile[] = newFiles.map((file) => {
+        const type = file.type.startsWith("video/") ? "video" : "image";
+        const previewUrl = type === "image" ? URL.createObjectURL(file) : ""; // Videos don't generate preview URLs easily
+
+        return { file, type, previewUrl };
+      });
+
+      setMediaFiles([...mediaFiles, ...newMediaFiles]);
     }
   };
 
-  const handleRemoveImage = (index: number) => {
-    const updatedFiles = images.filter((_, i) => i !== index);
-    setImages(updatedFiles);
+  const handleRemoveMedia = (index: number) => {
+    // Revoke object URL to avoid memory leaks
+    if (mediaFiles[index].previewUrl) {
+      URL.revokeObjectURL(mediaFiles[index].previewUrl);
+    }
 
-    previewUrls.forEach((url) => URL.revokeObjectURL(url));
-    const urls = updatedFiles.map((file) => URL.createObjectURL(file));
-    setPreviewUrls(urls);
+    const updatedFiles = mediaFiles.filter((_, i) => i !== index);
+    setMediaFiles(updatedFiles);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,13 +114,19 @@ const AddProducts = () => {
       data.append("discountPrice", formData.discountPrice);
       data.append("stock", formData.stock);
       data.append("trending_product", String(formData.trendingProduct));
-      data.append("artistId", formData.artistId);
+      if (formData.artistId != null && formData.artistId != "")
+        data.append("artistId", formData.artistId);
       data.append("paymentMethods", formData.paymentMethods);
-      images.forEach((file) => data.append("images", file));
+
+      // Append all media files
+      mediaFiles.forEach((media) => {
+        data.append("media", media.file);
+      });
 
       await dispatch(createProduct(data)).unwrap();
       toast.success("✅ Product added successfully!");
 
+      // Reset form
       setFormData({
         name: "",
         description: "",
@@ -122,15 +137,18 @@ const AddProducts = () => {
         stock: "",
         trendingProduct: false,
         paymentMethods: "",
+        artistId: "",
       });
-      setImages([]);
-      previewUrls.forEach((url) => URL.revokeObjectURL(url));
-      setPreviewUrls([]);
+
+      // Clean up media URLs and reset media files
+      mediaFiles.forEach((media) => {
+        if (media.previewUrl) URL.revokeObjectURL(media.previewUrl);
+      });
+      setMediaFiles([]);
     } catch (error: any) {
       toast.error(`❌ Failed: ${error}`);
     }
   };
-
   return (
     <div className="min-h-screen  py-2 px-1">
       <div className="max-w-4xl mx-auto">
@@ -310,7 +328,7 @@ const AddProducts = () => {
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-2 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
                   <h3 className="text-xl font-semibold text-gray-800">
-                    Product Images
+                    Product Media
                   </h3>
                 </div>
 
@@ -322,53 +340,63 @@ const AddProducts = () => {
                     </div>
                     <div>
                       <span className="text-xl font-medium text-gray-700 group-hover:text-blue-600">
-                        Upload Product Images
+                        Upload Product Images & Videos
                       </span>
                       <p className="text-gray-500 mt-1">
-                        PNG, JPG, WEBP up to 10MB
+                        PNG, JPG, WEBP, MP4, MKV up to 10MB
                       </p>
                     </div>
                     <input
                       type="file"
                       multiple
-                      accept="image/*"
-                      onChange={handleImageChange}
+                      accept="image/*,video/*"
+                      onChange={handleMediaChange}
                       className="hidden"
                     />
                   </label>
                 </div>
 
-                {/* Image Preview */}
-                {previewUrls.length > 0 && (
+                {/* Media Preview */}
+                {mediaFiles.length > 0 && (
                   <div className="space-y-4">
                     <h4 className="font-medium text-gray-700">
-                      Image Preview ({previewUrls.length})
+                      Media Preview ({mediaFiles.length})
                     </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                      {previewUrls.map((url, idx) => (
+                      {mediaFiles.map((media, idx) => (
                         <div
                           key={idx}
                           className="relative group aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
                         >
-                          <img
-                            src={url}
-                            alt={`Preview ${idx + 1}`}
-                            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
+                          {media.type === "image" ? (
+                            <img
+                              src={media.previewUrl}
+                              alt={`Preview ${idx + 1}`}
+                              className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                              <Video className="w-8 h-8 text-gray-500" />
+                              <span className="sr-only">Video file</span>
+                            </div>
+                          )}
+                          <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
                           <button
                             type="button"
-                            onClick={() => handleRemoveImage(idx)}
+                            onClick={() => handleRemoveMedia(idx)}
                             className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transform hover:scale-110 transition-all duration-200 opacity-0 group-hover:opacity-100"
                           >
                             <X className="w-4 h-4" />
                           </button>
+                          <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                            {media.type}
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
-              </div>{" "}
+              </div>
               <div className="space-y-6">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-2 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
@@ -441,7 +469,6 @@ const AddProducts = () => {
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl 
                focus:ring-2 focus:ring-blue-500 focus:border-transparent 
                transition-all duration-200 bg-gray-50 hover:bg-white"
-                    required
                   >
                     <option value="">Select Artist</option>
                     {artists.map((cat) => (

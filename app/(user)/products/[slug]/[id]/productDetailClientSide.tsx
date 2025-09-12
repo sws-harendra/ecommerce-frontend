@@ -32,6 +32,7 @@ import {
 } from "react-share";
 import { slugify } from "@/app/utils/slugify";
 import { toast } from "sonner";
+import { getFileType } from "@/app/utils/getMediaType";
 
 interface ProductDetailClientProps {
   product: Product;
@@ -114,14 +115,57 @@ export default function ProductDetailClient({
             <div className="group relative aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/5 group-hover:to-black/10 transition-all duration-500"></div>
               {product.images && product.images.length > 0 ? (
-                <Image
-                  src={getImageUrl(product.images[selectedImage])}
-                  alt={product.name}
-                  fill
-                  unoptimized
-                  className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  priority
-                />
+                (() => {
+                  const file = product.images[selectedImage];
+                  const fileType = getFileType(file);
+
+                  if (fileType === "image") {
+                    return (
+                      <Image
+                        src={getImageUrl(file)}
+                        alt={product.name}
+                        fill
+                        unoptimized
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                        priority
+                      />
+                    );
+                  }
+
+                  if (fileType === "video") {
+                    return (
+                      <video
+                        src={getImageUrl(file)}
+                        className="w-full h-full object-cover rounded-xl"
+                        controls
+                        autoPlay
+                        muted
+                        loop
+                      />
+                    );
+                  }
+
+                  return (
+                    <div className="flex items-center justify-center h-full text-gray-400">
+                      <div className="text-center">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
+                          <svg
+                            className="w-8 h-8"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <p>No Preview Available</p>
+                      </div>
+                    </div>
+                  );
+                })()
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-400">
                   <div className="text-center">
@@ -138,11 +182,10 @@ export default function ProductDetailClient({
                         />
                       </svg>
                     </div>
-                    <p>No Image Available</p>
+                    <p>No Media Available</p>
                   </div>
                 </div>
               )}
-
               {/* Floating Discount Badge */}
               <div className="absolute top-4 right-4 transform rotate-12">
                 <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg animate-pulse">
@@ -156,27 +199,45 @@ export default function ProductDetailClient({
             </div>
 
             {/* Thumbnail Gallery */}
+
             {product.images && product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-3">
-                {product.images.slice(0, 8).map((image, index) => (
-                  <div
-                    key={index}
-                    className={`group aspect-square relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-fade-in-up ${
-                      selectedImage === index ? "ring-2 ring-blue-500" : ""
-                    }`}
-                    style={{ animationDelay: `${index * 100}ms` }}
-                    onClick={() => setSelectedImage(index)}
-                  >
-                    <Image
-                      unoptimized
-                      src={getImageUrl(image)}
-                      alt={`${product.name} ${index + 1}`}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
-                  </div>
-                ))}
+                {product.images.slice(0, 8).map((file, index) => {
+                  const fileType = getFileType(file);
+
+                  return (
+                    <div
+                      key={index}
+                      className={`group aspect-square relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-fade-in-up ${
+                        selectedImage === index ? "ring-2 ring-blue-500" : ""
+                      }`}
+                      style={{ animationDelay: `${index * 100}ms` }}
+                      onClick={() => setSelectedImage(index)}
+                    >
+                      {fileType === "image" ? (
+                        <Image
+                          unoptimized
+                          src={getImageUrl(file)}
+                          alt={`${product.name} ${index + 1}`}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                      ) : fileType === "video" ? (
+                        <video
+                          src={getImageUrl(file)}
+                          className="w-full h-full object-cover"
+                          muted
+                          playsInline
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-sm text-gray-500">
+                          Unsupported
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
