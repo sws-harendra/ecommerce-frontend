@@ -11,14 +11,13 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 export const registerUser = createAsyncThunk(
   "auth/register",
-  async (userData: RegisterUserRequest, { rejectWithValue }) => {
+  async (userData: any, { rejectWithValue }) => {
     try {
       return await authService.registerUser(userData);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        return rejectWithValue(err.message);
-      }
-      return rejectWithValue("Email register failed");
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || "Registration failed"
+      );
     }
   }
 );

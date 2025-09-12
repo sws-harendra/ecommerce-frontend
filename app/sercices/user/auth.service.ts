@@ -8,6 +8,12 @@ export const authService = {
     return response.data;
   },
 
+  activateAccount: async (activation_token: any) => {
+    const response = await axiosInstance.post("/user/activation", {
+      activation_token: activation_token,
+    });
+    return response.data;
+  },
   // Send OTP to phone
   sendOtpToPhone: async (phoneNumber: string) => {
     const response = await axiosInstance.post("/user/auth/send-otp", {

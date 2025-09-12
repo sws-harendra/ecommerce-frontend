@@ -10,12 +10,19 @@ import {
   Camera,
 } from "lucide-react";
 import Link from "next/link";
+import { useDispatch } from "react-redux";
+import { useAppDispatch } from "@/app/lib/store/store";
+import { registerUser } from "@/app/lib/store/features/authSlice";
+import { useRouter } from "next/navigation";
 
 export default function RegisterForm() {
+  const router = useRouter();
+
+  const dispatch = useAppDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullname, setFullName] = useState("");
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
@@ -50,12 +57,7 @@ export default function RegisterForm() {
       }
 
       setErrors((prev) => ({ ...prev, image: "" }));
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      if (file) setProfileImage(file);
     }
   };
 
@@ -66,44 +68,61 @@ export default function RegisterForm() {
 
   const handleSubmit = async () => {
     setErrors({ email: "", password: "", fullname: "", image: "" });
-
-    let hasErrors = false;
-    const newErrors = { email: "", password: "", fullname: "", image: "" };
-
-    if (!fullname.trim()) {
-      newErrors.fullname = "Full name is required";
-      hasErrors = true;
-    } else if (fullname.trim().length < 2) {
-      newErrors.fullname = "Full name must be at least 2 characters";
-      hasErrors = true;
-    }
-
-    if (!email) {
-      newErrors.email = "Email is required";
-      hasErrors = true;
-    } else if (!validateEmail(email)) {
-      newErrors.email = "Please enter a valid email";
-      hasErrors = true;
-    }
-
-    if (!password) {
-      newErrors.password = "Password is required";
-      hasErrors = true;
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-      hasErrors = true;
-    }
-
-    if (hasErrors) {
-      setErrors(newErrors);
-      return;
-    }
-
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsLoading(false);
+    try {
+      let hasErrors = false;
+      const newErrors = { email: "", password: "", fullname: "", image: "" };
 
-    alert("Registration successful!");
+      if (!fullname.trim()) {
+        newErrors.fullname = "Full name is required";
+        hasErrors = true;
+      } else if (fullname.trim().length < 2) {
+        newErrors.fullname = "Full name must be at least 2 characters";
+        hasErrors = true;
+      }
+
+      if (!email) {
+        newErrors.email = "Email is required";
+        hasErrors = true;
+      } else if (!validateEmail(email)) {
+        newErrors.email = "Please enter a valid email";
+        hasErrors = true;
+      }
+
+      if (!password) {
+        newErrors.password = "Password is required";
+        hasErrors = true;
+      } else if (password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters";
+        hasErrors = true;
+      }
+
+      if (hasErrors) {
+        setErrors(newErrors);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("fullname", password);
+      if (profileImage) formData.append("file", profileImage);
+
+      const response = await dispatch(registerUser(formData)).unwrap();
+      console.log("hererer", response);
+      if (response.success) {
+        // ✅ redirect here
+
+        router.push("/");
+      }
+      setIsLoading(false);
+    } catch (err) {
+      setErrors(err as string);
+
+      console.log("errpr occured", err);
+    } finally {
+      setIsLoading(false); // ✅ only stop loader after request is done
+    }
   };
 
   return (
@@ -142,7 +161,7 @@ export default function RegisterForm() {
                   >
                     {profileImage ? (
                       <img
-                        src={profileImage}
+                        src={URL.createObjectURL(profileImage)}
                         alt="Profile preview"
                         className="w-full h-full object-cover"
                       />

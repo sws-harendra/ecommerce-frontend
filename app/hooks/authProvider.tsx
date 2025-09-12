@@ -45,6 +45,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     const publicPatterns = [
       /^\/products\/.*/,
       /^\/artists\/.*/,
+      /^\/activation\/.*/,
       /^\/blogs\/\d+\/?.*$/,
     ];
 
