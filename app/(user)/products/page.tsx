@@ -426,7 +426,7 @@ const FilterSidebar = ({
 function AllProducts() {
   const searchParams = useSearchParams();
   const querySearch = searchParams.get("search") || "";
-  const queryCategory = searchParams.get("categoryId") || "";
+  const queryCategory = searchParams.get("category") || "";
 
   const dispatch = useAppDispatch();
   const { products, status, error } = useAppSelector((state) => state.product);

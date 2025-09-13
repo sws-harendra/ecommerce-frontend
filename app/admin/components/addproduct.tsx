@@ -149,6 +149,52 @@ const AddProducts = () => {
       toast.error(`❌ Failed: ${error}`);
     }
   };
+  const flattenCategoriesForDropdown = (cats: any[], level = 0): any[] => {
+    let result: any[] = [];
+
+    cats.forEach((cat) => {
+      // Add current category with proper indentation indicator
+      result.push({
+        id: cat.id,
+        name: cat.name,
+        level: level,
+        displayName: "  ".repeat(level) + (level > 0 ? "└ " : "") + cat.name,
+      });
+
+      // Recursively add subcategories
+      if (cat.subcategories && cat.subcategories.length > 0) {
+        result = result.concat(
+          flattenCategoriesForDropdown(cat.subcategories, level + 1)
+        );
+      }
+    });
+
+    return result;
+  };
+
+  // Function to flatten categories for table display
+  const flattenCategoriesForTable = (cats: any[], level = 0): any[] => {
+    let result: any[] = [];
+
+    cats.forEach((cat) => {
+      result.push({
+        ...cat,
+        level: level,
+        displayName: "  ".repeat(level) + (level > 0 ? "└ " : "") + cat.name,
+      });
+
+      if (cat.subcategories && cat.subcategories.length > 0) {
+        result = result.concat(
+          flattenCategoriesForTable(cat.subcategories, level + 1)
+        );
+      }
+    });
+
+    return result;
+  };
+
+  const dropdownCategories = flattenCategoriesForDropdown(categories);
+
   return (
     <div className="min-h-screen  py-2 px-1">
       <div className="max-w-4xl mx-auto">
@@ -228,9 +274,9 @@ const AddProducts = () => {
                       required
                     >
                       <option value="">Select Category</option>
-                      {categories.map((cat) => (
+                      {dropdownCategories.map((cat) => (
                         <option key={cat.id} value={cat.id}>
-                          {cat.name}
+                          {cat.displayName}
                         </option>
                       ))}
                     </select>
