@@ -13,6 +13,7 @@ import {
   Package,
   TrendingUp,
   ShoppingCart,
+  SeparatorVertical,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/lib/store/store";
 import {
@@ -27,6 +28,7 @@ import SidebarForm from "../../components/SidebarForm";
 import AddProducts from "../../components/addproduct";
 import EditProduct from "../../components/editProduct";
 import ProductPreviewModal from "../../components/viewproducts";
+import Link from "next/link";
 
 export default function AdminProductsPage() {
   const dispatch = useAppDispatch();
@@ -558,6 +560,16 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center space-x-2">
+                        {" "}
+                        {product?.ProductVariants?.length > 0 && (
+                          <Link
+                            href={`/admin/dashboard/products/${product.id}`}
+                            className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                            title="Manage Variants"
+                          >
+                            <SeparatorVertical size={16} />
+                          </Link>
+                        )}
                         <button
                           title="View"
                           onClick={() => handleViewProduct(product)}
@@ -578,7 +590,6 @@ export default function AdminProductsPage() {
                         >
                           <EditProduct productId={product.id} />
                         </SidebarForm>
-
                         <button
                           title="Delete"
                           onClick={() => handleDelete(product.id)}

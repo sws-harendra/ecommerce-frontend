@@ -1,3 +1,25 @@
+export interface ProductVariantOption {
+  id: number;
+  name: string;
+  value: string;
+  hexCode?: string | null;
+  imageUrl?: string | null;
+  category: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface ProductVariant {
+  id: number;
+  sku?: string | null;
+  price: string;
+  stock: number;
+  image?: string | null;
+  isActive: boolean;
+  options: ProductVariantOption[];
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -16,6 +38,7 @@ export interface Product {
   updatedAt: Date;
   Category: Category;
   paymentMethods: string;
+  ProductVariants?: ProductVariant[]; // 👈 add this
 }
 
 export interface Category {

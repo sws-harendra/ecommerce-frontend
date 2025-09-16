@@ -551,7 +551,7 @@ const CartPage = () => {
               </div>
 
               {/* Free Shipping Progress */}
-              {shipping > 0 && (
+              {/* {shipping > 0 && (
                 <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
                   <div className="flex items-center mb-2">
                     <Truck className="w-5 h-5 text-blue-600 mr-2" />
@@ -568,7 +568,7 @@ const CartPage = () => {
                     ></div>
                   </div>
                 </div>
-              )}
+              )} */}
               <Link
                 href={`${
                   isAuthenticated ? "/checkout" : "/authentication/login"
@@ -601,7 +601,7 @@ const CartPage = () => {
               </div>
 
               {/* Payment Methods */}
-              <div className="pt-4 border-t border-gray-200">
+              {/* <div className="pt-4 border-t border-gray-200">
                 <p className="text-gray-600 text-center mb-3 font-medium text-sm">
                   We accept
                 </p>
@@ -619,7 +619,7 @@ const CartPage = () => {
                     PP
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

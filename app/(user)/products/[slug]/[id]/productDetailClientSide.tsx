@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Product } from "@/app/types/product.types";
+import { Product, ProductVariant } from "@/app/types/product.types";
 import { getImageUrl } from "@/app/utils/getImageUrl";
 import { discountPercentage } from "@/app/utils/discountCalculator";
 import { useState, useEffect } from "react";
@@ -44,12 +44,16 @@ export default function ProductDetailClient({
   formattedTags,
 }: ProductDetailClientProps) {
   const router = useRouter();
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
+    null
+  );
 
   const [mounted, setMounted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const dispatch = useAppDispatch(); // ✅ typed dispatch
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -69,10 +73,29 @@ export default function ProductDetailClient({
     return <Loader />;
   }
 
+  // Get images to display - either variant image or product images
+  const displayImages =
+    selectedVariant && selectedVariant.image
+      ? [selectedVariant.image] // Convert single image to array
+      : product.images;
+
   const shareUrl = `http://heritagehand.in/products/${slugify(product.name)}/${
     product.id
   }`; // dynamic link here
   const title = "Check out this product!";
+
+  const handleVariantClick = (variant: ProductVariant) => {
+    if (selectedVariant?.id === variant.id) {
+      // If clicking the same variant, unselect it
+      setSelectedVariant(null);
+      setSelectedImage(0);
+    } else {
+      // Select the new variant
+      setSelectedVariant(variant);
+      setSelectedImage(0);
+    }
+  };
+
   return (
     <div className="min-h-screen pb-10 bg-gradient-to-br from-slate-50 via-gray-200 to-blue-50">
       {/* Animated Background Elements */}
@@ -114,9 +137,9 @@ export default function ProductDetailClient({
             {/* Main Image with Hover Effect */}
             <div className="group relative aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/5 group-hover:to-black/10 transition-all duration-500"></div>
-              {product.images && product.images.length > 0 ? (
+              {displayImages && displayImages.length > 0 ? (
                 (() => {
-                  const file = product.images[selectedImage];
+                  const file = displayImages[selectedImage];
                   const fileType = getFileType(file);
 
                   if (fileType === "image") {
@@ -200,9 +223,9 @@ export default function ProductDetailClient({
 
             {/* Thumbnail Gallery */}
 
-            {product.images && product.images.length > 1 && (
+            {displayImages && displayImages.length > 1 && (
               <div className="grid grid-cols-4 gap-3">
-                {product.images.slice(0, 8).map((file, index) => {
+                {displayImages.slice(0, 8).map((file, index) => {
                   const fileType = getFileType(file);
 
                   return (
@@ -281,9 +304,6 @@ export default function ProductDetailClient({
                       >
                         <Copy size={28} />
                       </button>
-                      {/* {copied && (
-                        <span className="text-xs text-green-600">Copied!</span>
-                      )} */}
                     </div>
                   )}
                 </div>
@@ -298,7 +318,10 @@ export default function ProductDetailClient({
             <div className="space-y-1 ">
               <div className="flex items-center space-x-4">
                 <span className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                  ₹{product.discountPrice}
+                  ₹
+                  {selectedVariant
+                    ? selectedVariant.price
+                    : product.discountPrice}
                 </span>
                 <span className="text-2xl text-gray-400 line-through">
                   ₹{product.originalPrice}
@@ -311,7 +334,11 @@ export default function ProductDetailClient({
                     ₹
                     {(
                       parseFloat(product.originalPrice) -
-                      parseFloat(product.discountPrice)
+                      parseFloat(
+                        selectedVariant
+                          ? selectedVariant.price
+                          : product.discountPrice
+                      )
                     ).toFixed(2)}
                   </span>
                 </div>
@@ -329,7 +356,8 @@ export default function ProductDetailClient({
             </div>
 
             {/* Product Details Grid */}
-            {product?.stock < 10 && (
+            {((!selectedVariant && product?.stock < 10) ||
+              (selectedVariant && selectedVariant.stock < 10)) && (
               <div className="grid grid-cols-2 gap-6">
                 <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-sm hover:shadow-md transition-all duration-300">
                   <h4 className="font-semibold text-gray-900 mb-2">
@@ -338,37 +366,13 @@ export default function ProductDetailClient({
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                     <span className="text-gray-700 font-medium">
-                      {product.stock} units
+                      {selectedVariant ? selectedVariant.stock : product.stock}{" "}
+                      units
                     </span>
                   </div>
                 </div>
-
-                {/* <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-sm hover:shadow-md transition-all duration-300">
-                <h4 className="font-semibold text-gray-900 mb-2">Max Order</h4>
-                <span className="text-gray-700 font-medium">
-                  {product.max_quantity_to_order} units
-                </span>
-              </div> */}
               </div>
             )}
-
-            {/* Tags Section */}
-            {/* {formattedTags.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-gray-900">Tags</h3>
-                <div className="flex flex-wrap gap-3">
-                  {formattedTags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="bg-gradient-to-r from-blue-100 to-purple-100 hover:from-blue-200 hover:to-purple-200 text-blue-800 text-sm font-medium px-4 py-2 rounded-full transition-all duration-300 cursor-pointer transform hover:scale-105 animate-fade-in-up"
-                      style={{ animationDelay: `${index * 100}ms` }}
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )} */}
 
             {/* Action Buttons */}
             <div className="space-y-4 pt-8">
@@ -376,12 +380,23 @@ export default function ProductDetailClient({
                 onClick={async () => {
                   await dispatch(
                     addToCart({
-                      id: product.id,
+                      id: selectedVariant
+                        ? `${product.id}-${selectedVariant.id}`
+                        : product.id,
                       name: product.name,
-                      price: parseFloat(product.discountPrice),
+                      price: parseFloat(
+                        selectedVariant
+                          ? selectedVariant.price
+                          : product.discountPrice
+                      ),
                       quantity: 1,
-                      imageUrl: product.images?.[0] || "",
+                      imageUrl: displayImages?.[0] || "",
                       paymentMethods: product.paymentMethods,
+                      variant: selectedVariant
+                        ? selectedVariant.options
+                            .map((opt) => `${opt.category.name}: ${opt.value}`)
+                            .join(", ")
+                        : undefined,
                     })
                   );
                   router.push("/cart");
@@ -397,15 +412,25 @@ export default function ProductDetailClient({
 
               <button
                 onClick={() => {
-                  console.log("clicked");
                   dispatch(
                     addToCart({
-                      id: product.id,
+                      id: selectedVariant
+                        ? `${product.id}-${selectedVariant.id}`
+                        : product.id,
                       name: product.name,
-                      price: parseFloat(product.discountPrice),
+                      price: parseFloat(
+                        selectedVariant
+                          ? selectedVariant.price
+                          : product.discountPrice
+                      ),
                       quantity: 1,
-                      imageUrl: product.images?.[0] || "",
+                      imageUrl: displayImages?.[0] || "",
                       paymentMethods: product.paymentMethods,
+                      variant: selectedVariant
+                        ? selectedVariant.options
+                            .map((opt) => `${opt.category.name}: ${opt.value}`)
+                            .join(", ")
+                        : undefined,
                     })
                   );
                 }}
@@ -416,6 +441,52 @@ export default function ProductDetailClient({
                 </div>
               </button>
             </div>
+
+            {/* Variants Section */}
+            {product?.ProductVariants && product.ProductVariants.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Choose a Variant
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {product.ProductVariants.map((variant) => (
+                    <button
+                      key={variant.id}
+                      onClick={() => handleVariantClick(variant)}
+                      className={`p-3 rounded-xl border flex flex-col items-center ${
+                        selectedVariant?.id === variant.id
+                          ? "bg-blue-100 text-blue-800 border-blue-600 ring-2 ring-blue-500"
+                          : "bg-white border-gray-300 text-gray-700 hover:border-blue-400"
+                      }`}
+                    >
+                      {/* Variant image if available */}
+                      {variant.image && (
+                        <div className="relative w-16 h-16 mb-2 rounded-md overflow-hidden">
+                          <Image
+                            src={getImageUrl(variant.image)}
+                            alt="Variant"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+
+                      {/* Variant options */}
+                      <span className="text-sm font-medium text-center">
+                        {variant.options
+                          .map((opt) => `${opt.category.name}: ${opt.value}`)
+                          .join(", ")}
+                      </span>
+
+                      {/* Variant price */}
+                      <span className="text-xs text-gray-500 mt-1">
+                        ₹{variant.price}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

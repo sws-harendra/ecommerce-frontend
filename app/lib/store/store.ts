@@ -15,7 +15,7 @@ import artistReducer from "./features/artistSlice";
 import blogReducer from "./features/blogSlice";
 import mediaCoveragesReducer from "./features/mediaCoverageSlice";
 import testimonialReducer from "./features/testimonialSlice";
-
+import varientReducer from "./features/variantSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -32,6 +32,7 @@ export const store = configureStore({
     blog: blogReducer,
     mediaCoverages: mediaCoveragesReducer,
     testimonial: testimonialReducer,
+    variants: varientReducer,
   },
   devTools: process.env.NEXT_PUBLIC_NODE_ENV !== "production", // ✅ disable in prod
 });

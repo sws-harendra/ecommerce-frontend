@@ -17,6 +17,7 @@ import {
   Pen,
   Camera,
   Star,
+  ChartNoAxesGanttIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // ✅ for navigation
@@ -74,6 +75,11 @@ const menuItems = [
     name: "Testimonial",
     icon: Star,
     href: "/admin/dashboard/testimonials",
+  },
+  {
+    name: "Varients",
+    icon: ChartNoAxesGanttIcon,
+    href: "/admin/dashboard/varient",
   },
   {
     name: "Logout",

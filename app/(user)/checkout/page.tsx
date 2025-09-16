@@ -149,9 +149,10 @@ const CheckoutPage = () => {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const shipping = subtotal > 100 ? 0 : 9.99;
+  // const shipping = subtotal > 100 ? 0 : 9.99;
   const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  // const total = subtotal + shipping + tax;
+  const total = subtotal;
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -1099,7 +1100,7 @@ const CheckoutPage = () => {
                       </p>
                     </div>
                     <div className="text-gray-900 font-bold text-lg">
-                      {(item.price * item.quantity).toFixed(2)}
+                      ₹{(item.price * item.quantity).toFixed(2)}
                     </div>
                   </div>
                 ))}
@@ -1108,9 +1109,9 @@ const CheckoutPage = () => {
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between text-gray-600">
                   <span className="font-medium">Subtotal</span>
-                  <span className="font-semibold">{subtotal.toFixed(2)}</span>
+                  <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                {/* <div className="flex justify-between text-gray-600">
                   <span className="font-medium">Shipping</span>
                   <span className="font-semibold">
                     {shipping === 0 ? (
@@ -1123,11 +1124,11 @@ const CheckoutPage = () => {
                 <div className="flex justify-between text-gray-600">
                   <span className="font-medium">Tax</span>
                   <span className="font-semibold">{tax.toFixed(2)}</span>
-                </div>
+                </div> */}
                 <div className="border-t-2 border-gray-200 pt-4">
                   <div className="flex justify-between font-bold text-gray-900 text-xl">
                     <span>Total</span>
-                    <span className="text-blue-600">{total.toFixed(2)}</span>
+                    <span className="text-blue-600">₹{total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -1163,13 +1164,13 @@ const CheckoutPage = () => {
               </div>
 
               {/* Free shipping notice */}
-              {subtotal < 100 && (
+              {/* {subtotal < 100 && (
                 <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
                   <p className="text-sm text-blue-800 font-medium text-center">
                     Add ${(100 - subtotal).toFixed(2)} more for free shipping!
                   </p>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </div>
