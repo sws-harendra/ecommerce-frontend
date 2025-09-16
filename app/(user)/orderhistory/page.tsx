@@ -538,18 +538,23 @@ const OrderHistoryPage = () => {
                               className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl"
                             >
                               <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
-                                {item.Product?.images?.[0] ? (
+                                {item.variant?.image ||
+                                item.Product?.images?.[0] ? (
                                   <img
-                                    src={getImageUrl(item.Product.images[0])}
-                                    alt={item.Product.name || "Product"}
+                                    src={getImageUrl(
+                                      item.variant?.image ||
+                                        item.Product.images[0]
+                                    )}
+                                    alt={item.Product?.name || "Product"}
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
-                                      e.target.style.display = "none";
-                                      e.target.nextElementSibling.style.display =
+                                      e.currentTarget.style.display = "none";
+                                      e.currentTarget.nextElementSibling.style.display =
                                         "flex";
                                     }}
                                   />
                                 ) : null}
+
                                 <Package
                                   className={`w-8 h-8 text-gray-500 ${
                                     item.Product?.images?.[0] ? "hidden" : ""

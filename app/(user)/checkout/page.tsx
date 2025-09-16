@@ -336,6 +336,8 @@ const CheckoutPage = () => {
                 items: items.map((i) => ({
                   productId: i.id,
                   quantity: i.quantity,
+                  variantId: i.variantId,
+                  variantName: i.variantName,
                 })),
                 paymentMethod: "online",
                 transactionId: res.razorpay_payment_id,
@@ -382,6 +384,8 @@ const CheckoutPage = () => {
           items: items.map((i) => ({
             productId: i.id,
             quantity: i.quantity,
+            variantId: i.variantId,
+            variantName: i.variantName,
           })),
           paymentMethod: formData.paymentMethods,
         })

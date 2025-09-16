@@ -23,8 +23,8 @@ export interface Order {
 }
 
 interface OrderState {
-  orders: Order[];
-  currentOrder: Order | null;
+  orders: any;
+  currentOrder: any;
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
   totalCount: number;
@@ -45,7 +45,12 @@ export const placeOrder = createAsyncThunk(
     orderData: {
       userId: string;
       addressId: string;
-      items: { productId: number; quantity: number }[];
+      items: {
+        productId: number;
+        quantity: number;
+        variantId: number;
+        variantName: string;
+      }[];
       paymentMethod: string;
       paymentProvider?: string;
       transactionId?: string;

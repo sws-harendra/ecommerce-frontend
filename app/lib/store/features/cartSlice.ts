@@ -6,6 +6,8 @@ import { toast } from "sonner";
 
 export interface CartItem {
   id: number; // product id
+  variantId?: number; // variant id added
+  variantName?: string; // variant display name added
   name: string;
   price: number;
   quantity: number;
@@ -45,7 +47,10 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart: (state, action: PayloadAction<CartItem>) => {
-      const existing = state.items.find((i) => i.id === action.payload.id);
+      const existing = state.items.find(
+        (i) =>
+          i.id === action.payload.id && i.variantId === action.payload.variantId
+      );
       if (existing) {
         existing.quantity += action.payload.quantity;
         toast.success(`${action.payload.name} added in cart!`);
@@ -53,6 +58,7 @@ const cartSlice = createSlice({
         state.items.push(action.payload);
         toast.success(`${action.payload.name} added in cart!`);
       }
+      console.log(state.items);
       localStorage.setItem("cart", JSON.stringify(state.items));
     },
     removeFromCart: (state, action: PayloadAction<number>) => {

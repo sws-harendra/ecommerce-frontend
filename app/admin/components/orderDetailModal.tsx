@@ -95,26 +95,37 @@ const OrderDetailsModal = ({ order, onClose }: OrderDetailsModalProps) => {
                     <tr key={item.id}>
                       <td className="px-4 py-3">
                         <div className="flex items-center">
-                          {item.Product.images &&
-                            item.Product.images &&
-                            item.Product.images.length > 0 && (
-                              <img
-                                src={getImageUrl(item.Product.images?.[0])}
-                                alt={item.Product.name}
-                                className="w-12 h-12 object-cover rounded mr-3"
-                              />
+                          {/* Show variant image if exists, otherwise product image */}
+                          <img
+                            src={getImageUrl(
+                              item.variant?.image || item.Product.images?.[0]
                             )}
+                            alt={item.Product.name}
+                            className="w-12 h-12 object-cover rounded mr-3"
+                          />
                           <div>
                             <p className="font-medium">{item.Product.name}</p>
+                            {item?.variantname && (
+                              <p className="text-sm text-gray-500">
+                                Variant: {item?.variantname}
+                              </p>
+                            )}
                             <p className="text-sm text-gray-500">
-                              SKU: {item.Product.id}
+                              SKU: {item.variant?.sku || item.Product.id}
                             </p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3">{item.price.toFixed(2)}</td>
+                      <td className="px-4 py-3">
+                        ₹
+                        {parseFloat(item.variant?.price || item.price).toFixed(
+                          2
+                        )}
+                      </td>
                       <td className="px-4 py-3">{item.quantity}</td>
-                      <td className="px-4 py-3">{item.subtotal.toFixed(2)}</td>
+                      <td className="px-4 py-3">
+                        ₹{parseFloat(item.subtotal).toFixed(2)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

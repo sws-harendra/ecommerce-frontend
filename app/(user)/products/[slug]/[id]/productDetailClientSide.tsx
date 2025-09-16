@@ -414,23 +414,22 @@ export default function ProductDetailClient({
                 onClick={() => {
                   dispatch(
                     addToCart({
-                      id: selectedVariant
-                        ? `${product.id}-${selectedVariant.id}`
-                        : product.id,
+                      id: product.id,
                       name: product.name,
+                      quantity: 1,
+                      // imageUrl: product.images?.[0] || "",
+                      paymentMethods: product.paymentMethods,
                       price: parseFloat(
                         selectedVariant
                           ? selectedVariant.price
                           : product.discountPrice
                       ),
-                      quantity: 1,
+
                       imageUrl: displayImages?.[0] || "",
-                      paymentMethods: product.paymentMethods,
-                      variant: selectedVariant
-                        ? selectedVariant.options
-                            .map((opt) => `${opt.category.name}: ${opt.value}`)
-                            .join(", ")
-                        : undefined,
+                      variantId: selectedVariant?.id, // e.g. 31
+                      variantName: selectedVariant?.options
+                        .map((opt) => `${opt.category.name}: ${opt.value}`)
+                        .join(", "), // "Dimension: 14*15"
                     })
                   );
                 }}
