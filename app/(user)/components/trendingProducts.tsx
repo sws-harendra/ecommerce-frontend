@@ -68,11 +68,18 @@ const TrendingProducts = () => {
     isLoading && <Loader />;
   }
   return (
-    <div className="mx-4 md:mx-10 my-8 relative">
-      <Heading title="🔥 Trending Products" />
-
+    <div className="mx-4 text-center md:mx-10 my-8 relative">
+      {/* <Heading title="🔥 Trending Products" /> */}
+      <div className="text-center mb-12">
+        <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 flex items-center justify-center gap-2">
+          🔥 Trending <span className="text-blue-600">Products</span>
+        </h2>
+        <p className="mt-3 text-gray-600">
+          Discover best products that are trending right Now.
+        </p>
+      </div>
       <div
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-50 to-white p-6 "
+        className="relative overflow-hidden  rounded-3xl bg-gradient-to-br from-gray-50 to-white p-6 "
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >

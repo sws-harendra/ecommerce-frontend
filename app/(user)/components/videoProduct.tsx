@@ -94,14 +94,13 @@ export default function VideoProduct() {
 
   const handleShopNowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Additional debugging
     console.log("Shop Now clicked!");
   };
 
   if (!videos.length)
     return (
-      <div className="flex flex-col items-center justify-center py-16">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center mb-4">
+      <div className="flex flex-col items-center justify-center pt-10">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mb-4">
           <Volume2 className="w-8 h-8 text-white" />
         </div>
         <p className="text-gray-600 text-lg font-medium">No videos available</p>
@@ -109,28 +108,25 @@ export default function VideoProduct() {
     );
 
   return (
-    <div className="relative py-12 px-6 overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-purple-50">
+    <div className="py-6 px-4 bg-gray-50">
       {/* Header */}
       <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-          Featured Products
+        <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 flex items-center justify-center gap-2">
+          Featured <span className="text-blue-600">Products</span>
         </h2>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <p className="mt-3 text-gray-600">
           Discover amazing products through immersive video experiences
         </p>
       </div>
 
-      {/* Video Carousel with Swiper */}
-      <div className="relative max-w-7xl mx-auto">
+      {/* Video Carousel */}
+      <div className="relative  mx-auto">
         <Swiper
           ref={swiperRef}
           modules={[Navigation, Pagination, Autoplay]}
-          spaceBetween={32}
+          spaceBetween={24}
           slidesPerView={1}
           centeredSlides={false}
-          touchStartPreventDefault={false}
-          allowTouchMove={true}
-          simulateTouch={false}
           breakpoints={{
             640: {
               slidesPerView: 1,
@@ -150,121 +146,103 @@ export default function VideoProduct() {
             },
           }}
           navigation={{
-            nextEl: ".swiper-button-next-custom",
-            prevEl: ".swiper-button-prev-custom",
+            nextEl: ".custom-next",
+            prevEl: ".custom-prev",
           }}
           pagination={{
+            el: ".custom-pagination",
             clickable: true,
-            el: ".swiper-pagination-custom",
-            renderBullet: function (index, className) {
-              return `<span class="${className}"></span>`;
-            },
+            bulletClass: "custom-bullet",
+            bulletActiveClass: "custom-bullet-active",
           }}
           autoplay={
             isAutoScrolling
               ? { delay: 4000, disableOnInteraction: false }
               : false
           }
-          loop={true}
-          className="pb-16"
+          loop={videos.length > 1}
+          className="pb-12"
         >
           {videos.map((video) => (
             <SwiperSlide key={video.id}>
-              <div className="relative group h-full">
-                {/* Video Card - Full Height with No Background */}
-                <div className="relative rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden transform hover:scale-[1.02]">
-                  {/* Video Container - Increased Height */}
-                  <div className="relative h-[450px] overflow-hidden rounded-3xl">
-                    <video
-                      ref={(el) => (videoRefs.current[video.id] = el)}
-                      src={getImageUrl(video.videoUrl)}
-                      muted={unmutedId !== video.id}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      style={{ pointerEvents: "none" }}
-                      loop
-                      playsInline
-                    />
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                {/* Video Container - Increased Height */}
+                <div className="relative h-96 md:h-[500px] lg:h-[600px] overflow-hidden">
+                  <video
+                    ref={(el) => (videoRefs.current[video.id] = el)}
+                    src={getImageUrl(video.videoUrl)}
+                    muted={unmutedId !== video.id}
+                    className="w-full h-full object-cover"
+                    loop
+                    playsInline
+                  />
 
-                    {/* Enhanced Gradient Overlay for Better Text Readability */}
-                    <div
-                      className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
-                      style={{ pointerEvents: "none" }}
-                    />
-
-                    {/* Product Info Overlay - Bottom */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-40 pointer-events-none">
-                      <h3 className="font-bold text-2xl mb-3 leading-tight">
-                        {video.Product?.name || `Product #${video.productId}`}
-                      </h3>
-
-                      {video.Product?.description && (
-                        <p className="text-white/90 text-base mb-4 leading-relaxed line-clamp-2">
-                          {video.Product.description}
-                        </p>
+                  {/* Video Controls */}
+                  <div className="absolute top-4 right-4 flex gap-2 z-20">
+                    <button
+                      onClick={(e) => toggleMute(video.id, e)}
+                      className="bg-black bg-opacity-60 text-white p-2 rounded-full hover:bg-opacity-80 transition-all duration-200"
+                    >
+                      {unmutedId === video.id ? (
+                        <Volume2 className="h-4 w-4" />
+                      ) : (
+                        <VolumeX className="h-4 w-4" />
                       )}
+                    </button>
+                    <button
+                      onClick={(e) => togglePlayPause(video.id, e)}
+                      className="bg-black bg-opacity-60 text-white p-2 rounded-full hover:bg-opacity-80 transition-all duration-200"
+                    >
+                      {isPlaying === video.id ? (
+                        <Pause className="h-4 w-4" />
+                      ) : (
+                        <Play className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
 
-                      <div className="flex items-center justify-between pointer-events-auto">
-                        {video.Product?.price && (
-                          <span className="text-3xl font-bold text-yellow-400 drop-shadow-lg">
-                            ${video.Product.price}
-                          </span>
-                        )}
-
-                        <Link
-                          href={`/products/${slugify(
-                            video.Product?.name || "product"
-                          )}/${video.productId}`}
-                          onClick={handleShopNowClick}
-                          className="bg-white text-black px-8 py-3 rounded-full text-base font-bold transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 relative z-50 pointer-events-auto"
-                          style={{
-                            pointerEvents: "auto",
-                            position: "relative",
-                            zIndex: 50,
-                          }}
-                        >
-                          Shop Now
-                        </Link>
+                  {/* Playing Indicator */}
+                  {isPlaying === video.id && (
+                    <div className="absolute top-4 left-4 z-20">
+                      <div className="flex items-center gap-2 bg-green-500 bg-opacity-90 text-white px-3 py-1 rounded-full text-sm">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                        Playing
                       </div>
                     </div>
+                  )}
 
-                    {/* Video Controls Overlay */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                      <div className="absolute top-6 right-6 flex gap-3 pointer-events-auto z-30">
-                        <button
-                          onClick={(e) => toggleMute(video.id, e)}
-                          className="bg-black/60 backdrop-blur-md p-3 rounded-full hover:bg-black/80 shadow-xl transition-all duration-300 border border-white/20 pointer-events-auto"
-                        >
-                          {unmutedId === video.id ? (
-                            <Volume2 className="h-5 w-5 text-white" />
-                          ) : (
-                            <VolumeX className="h-5 w-5 text-white" />
-                          )}
-                        </button>
-                        <button
-                          onClick={(e) => togglePlayPause(video.id, e)}
-                          className="bg-black/60 backdrop-blur-md p-3 rounded-full hover:bg-black/80 shadow-xl transition-all duration-300 border border-white/20 pointer-events-auto"
-                        >
-                          {isPlaying === video.id ? (
-                            <Pause className="h-5 w-5 text-white" />
-                          ) : (
-                            <Play className="h-5 w-5 text-white" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
+                  {/* Enhanced Gradient Overlay for Text */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
 
-                    {/* Playing indicator */}
-                    {isPlaying === video.id && (
-                      <div className="absolute top-6 left-6 pointer-events-none z-20">
-                        <div className="flex items-center gap-2 bg-green-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
-                          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                          Playing
-                        </div>
-                      </div>
+                  {/* Product Information Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
+                    <h3 className="font-bold text-xl md:text-2xl mb-3 leading-tight">
+                      {video.Product?.name || `Product #${video.productId}`}
+                    </h3>
+
+                    {video.Product?.description && (
+                      <p className="text-white text-sm md:text-base mb-4 leading-relaxed line-clamp-2 opacity-90">
+                        {video.Product.description}
+                      </p>
                     )}
 
-                    {/* Hover Overlay Effect */}
-                    <div className="absolute inset-0 bg-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="flex items-center justify-between">
+                      {video.Product?.price && (
+                        <span className="text-2xl md:text-3xl font-bold text-yellow-400 drop-shadow-lg">
+                          ${video.Product.price}
+                        </span>
+                      )}
+
+                      <Link
+                        href={`/products/${slugify(
+                          video.Product?.name || "product"
+                        )}/${video.productId}`}
+                        onClick={handleShopNowClick}
+                        className="bg-white text-black px-6 py-3 rounded-lg font-semibold transition-all duration-200 text-sm hover:bg-gray-100 shadow-lg hover:shadow-xl transform hover:scale-105"
+                      >
+                        Shop Now
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -272,95 +250,66 @@ export default function VideoProduct() {
           ))}
         </Swiper>
 
-        {/* Custom Navigation Buttons */}
-        <div className="swiper-button-prev-custom absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm p-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer group border border-gray-200 hover:border-purple-300">
-          <ChevronLeft className="w-6 h-6 text-gray-600 group-hover:text-purple-600 transition-colors" />
-        </div>
-        <div className="swiper-button-next-custom absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm p-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer group border border-gray-200 hover:border-purple-300">
-          <ChevronRight className="w-6 h-6 text-gray-600 group-hover:text-purple-600 transition-colors" />
-        </div>
+        {/* Navigation Buttons */}
+        <button className="custom-prev absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg p-3 rounded-full hover:bg-gray-50 transition-colors duration-200">
+          <ChevronLeft className="w-6 h-6 text-gray-600" />
+        </button>
+        <button className="custom-next absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg p-3 rounded-full hover:bg-gray-50 transition-colors duration-200">
+          <ChevronRight className="w-6 h-6 text-gray-600" />
+        </button>
 
-        {/* Custom Pagination */}
-        <div className="swiper-pagination-custom flex justify-center mt-12 gap-3"></div>
+        {/* Pagination */}
+        <div className="custom-pagination flex justify-center mt-8"></div>
       </div>
 
       {/* Auto-scroll Toggle */}
-      <div className="flex justify-center mt-8"></div>
+      {/* <div className="flex justify-center mt-8">
+        <button
+          onClick={handleAutoScrollToggle}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+            isAutoScrolling
+              ? "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-gray-300 text-gray-700 hover:bg-gray-400"
+          }`}
+        >
+          {isAutoScrolling ? "Pause Auto-scroll" : "Resume Auto-scroll"}
+        </button>
+      </div> */}
 
       <style jsx global>{`
-        .swiper-button-next-custom,
-        .swiper-button-prev-custom {
-          position: absolute;
-          margin-top: 0;
-          width: auto;
-          height: auto;
-          top: 50%;
-          transform: translateY(-50%);
-        }
-
-        .swiper-pagination-custom span {
-          display: inline-block;
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-          background: #d1d5db;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          opacity: 0.7;
-        }
-
-        .swiper-pagination-custom span:hover {
-          background: #9ca3af;
-          opacity: 1;
-          transform: scale(1.1);
-        }
-
-        .swiper-pagination-custom span.swiper-pagination-bullet-active {
-          background: linear-gradient(135deg, #9333ea, #db2777);
-          width: 40px;
-          border-radius: 12px;
-          opacity: 1;
-          transform: scale(1.1);
-        }
-
-        /* Text truncation utilities */
-        .line-clamp-1 {
-          display: -webkit-box;
-          -webkit-line-clamp: 1;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
+        }
+
+        .custom-bullet {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #d1d5db;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          margin: 0 4px;
+          opacity: 0.5;
+        }
+
+        .custom-bullet:hover {
+          opacity: 0.8;
+          transform: scale(1.1);
+        }
+
+        .custom-bullet-active {
+          background: #2563eb;
+          opacity: 1;
+          transform: scale(1.2);
+        }
+
+        .truncate {
+          overflow: hidden;
           text-overflow: ellipsis;
-        }
-
-        /* Smooth scrolling */
-        .swiper {
-          overflow: visible;
-        }
-
-        .swiper-slide {
-          height: auto;
-        }
-
-        /* Enhanced hover effects */
-        .swiper-slide:hover {
-          z-index: 10;
-        }
-
-        /* Ensure clickable elements work */
-        .pointer-events-auto {
-          pointer-events: auto !important;
-        }
-
-        .pointer-events-none {
-          pointer-events: none !important;
+          white-space: nowrap;
         }
       `}</style>
     </div>

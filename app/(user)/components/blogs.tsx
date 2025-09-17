@@ -4,7 +4,6 @@ import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/app/lib/store/store";
 import { fetchBlogPosts } from "@/app/lib/store/features/blogSlice";
 import { getImageUrl } from "@/app/utils/getImageUrl";
-import Heading from "@/app/commonComponents/heading";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { slugify } from "@/app/utils/slugify";
@@ -19,46 +18,68 @@ const AllBlogsHomePage = () => {
 
   if (status === "loading")
     return (
-      <div className="text-center py-8 text-gray-500">Loading blogs...</div>
+      <div className="text-center py-12 text-gray-500 text-lg animate-pulse">
+        Loading blogs...
+      </div>
     );
   if (status === "failed")
     return (
-      <div className="text-center py-8 text-red-500">Failed to load blogs.</div>
+      <div className="text-center py-12 text-red-500 font-medium">
+        Failed to load blogs.
+      </div>
     );
   if (!posts || posts.length === 0) return null;
 
   return (
-    <div className="p-6 md:p-12 bg-gray-50">
-      <div className="flex items-center justify-between mb-8">
-        <Heading title="Latest Blogs" />
-        <Link href="/blogs">
-          <button className="flex items-center gap-1 text-blue-600 font-semibold hover:text-blue-800 transition-colors">
+    <section className="px-6 md:px-12 py-6 bg-gradient-to-b from-gray-50 to-white">
+      {/* Header */}
+      <div className="relative mb-14">
+        <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 text-center">
+          ⭐ Latest <span className="text-blue-600">Blogs</span>
+        </h2>
+        <p className="mt-3 text-gray-600 text-base lg:text-lg max-w-xl mx-auto text-center">
+          Discover insights, stories, and trends shaping the creative world.
+        </p>
+
+        {/* View All Button for desktop */}
+        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 hidden lg:block">
+          <Link
+            href="/blogs"
+            className="inline-flex items-center gap-1 px-5 py-2 rounded-full bg-blue-600 text-white font-semibold shadow-md hover:bg-blue-700 transition-colors"
+          >
             View All <ArrowRight size={16} />
-          </button>
-        </Link>
+          </Link>
+        </div>
       </div>
 
+      {/* Blog Grid */}
       <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {posts.slice(0, 4).map((post) => (
-          <Link key={post.id} href={`/blogs/${post.id}/${slugify(post.slug!)}`}>
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-1 transition-all cursor-pointer flex flex-col">
+          <Link
+            key={post.id}
+            href={`/blogs/${post.id}/${slugify(post.slug!)}`}
+            className="group"
+          >
+            <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col">
+              {/* Image */}
               <div className="h-48 w-full relative overflow-hidden">
                 {post.featuredImage ? (
                   <img
                     src={getImageUrl(post.featuredImage)}
                     alt={post.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400 font-medium">
                     No Image
                   </div>
                 )}
-                {/* Optional gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
               </div>
+
+              {/* Content */}
               <div className="p-5 flex flex-col flex-grow">
-                <h3 className="text-lg font-bold mb-2 line-clamp-2 text-gray-900">
+                <h3 className="text-lg font-semibold mb-2 line-clamp-2 text-gray-900 group-hover:text-blue-600 transition-colors">
                   {post.title}
                 </h3>
                 {post.excerpt && (
@@ -66,7 +87,9 @@ const AllBlogsHomePage = () => {
                     {post.excerpt}
                   </p>
                 )}
-                <span className="mt-auto text-blue-600 font-semibold flex items-center gap-1 hover:text-blue-800 transition-colors">
+
+                {/* CTA */}
+                <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-blue-600 group-hover:gap-2 transition-all">
                   Read More <ArrowRight size={14} />
                 </span>
               </div>
@@ -74,7 +97,7 @@ const AllBlogsHomePage = () => {
           </Link>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 

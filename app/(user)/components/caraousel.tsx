@@ -62,139 +62,159 @@ export default function BannerCarousel() {
 
   if (!banners.length) {
     return (
-      <div className="h-64 flex items-center justify-center">
-        No banners available
+      <div className="p-4 sm:p-6 md:p-8 lg:p-12">
+        <div className="h-64 flex items-center justify-center rounded-3xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg border border-gray-200">
+          <div className="text-gray-500 text-lg font-medium">
+            No banners available
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full">
-      {/* Carousel wrapper */}
-      <div
-        className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] overflow-hidden bg-gray-100"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {/* slides */}
+    <div className="p-4 sm:p-6 md:p-8 lg:p-12">
+      {/* Floating carousel wrapper */}
+      <div className="relative w-full max-w-[96%] mx-auto">
+        {/* Background blur effect */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl blur-2xl transform scale-105 opacity-50" />
+
+        {/* Main carousel container */}
         <div
-          className="flex transition-transform duration-700 ease-in-out h-full"
-          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] overflow-hidden rounded-3xl shadow-2xl bg-white border border-gray-200/50 backdrop-blur-sm transform transition-all duration-700 hover:shadow-3xl hover:-translate-y-2 hover:scale-[1.02]"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
-          {banners.map((banner, index) => (
-            <div
-              key={banner.id}
-              className="min-w-full h-full relative cursor-pointer group"
-              onClick={() => handleBannerClick(banner)}
-            >
-              <Image
-                src={getImageUrl(banner.imageUrl)}
-                alt={banner.title}
-                fill
-                className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
-                  imageLoaded[index] ? "opacity-100" : "opacity-0"
-                }`}
-                unoptimized
-                onLoad={() => handleImageLoad(index)}
-                loading={index === 0 ? "eager" : "lazy"}
-              />
+          {/* Inner shadow for depth */}
+          <div className="absolute inset-0 rounded-3xl shadow-inner pointer-events-none z-10" />
 
-              {!imageLoaded[index] && (
-                <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                  <div className="text-gray-400">Loading...</div>
-                </div>
-              )}
+          {/* slides */}
+          <div
+            className="flex transition-transform duration-700 ease-in-out h-full"
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          >
+            {banners.map((banner, index) => (
+              <div
+                key={banner.id}
+                className="min-w-full h-full relative cursor-pointer group overflow-hidden"
+                onClick={() => handleBannerClick(banner)}
+              >
+                <Image
+                  src={getImageUrl(banner.imageUrl)}
+                  alt={banner.title}
+                  fill
+                  className={`w-full h-full object-cover transition-all duration-1000 group-hover:scale-110 ${
+                    imageLoaded[index] ? "opacity-100" : "opacity-0"
+                  }`}
+                  unoptimized
+                  onLoad={() => handleImageLoad(index)}
+                  loading={index === 0 ? "eager" : "lazy"}
+                />
 
-              {/* gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent opacity-70 group-hover:opacity-80 transition-opacity duration-300" />
+                {!imageLoaded[index] && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse flex items-center justify-center">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.1s" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
 
-              {/* text content */}
-              <div className="absolute inset-0 flex items-center justify-start">
-                <div className="text-white px-6 sm:px-12 md:px-16 lg:px-20 max-w-2xl">
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-2 sm:mb-4 leading-tight">
-                    {banner.title}
-                  </h2>
-                  {banner.subtitle && (
-                    <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-4 sm:mb-6 opacity-90 font-medium">
-                      {banner.subtitle}
-                    </p>
-                  )}
-                  {banner.ctaText && (
-                    <button className="bg-white text-gray-900 hover:bg-gray-100 px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold text-sm sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center space-x-2 group/btn">
-                      <span>{banner.ctaText}</span>
-                      <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5 group-hover/btn:translate-x-1 transition-transform" />
-                    </button>
-                  )}
+                {/* Enhanced gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent opacity-80 group-hover:opacity-90 transition-all duration-500" />
+
+                {/* Additional subtle overlay for better text contrast */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+
+                {/* Enhanced text content */}
+                <div className="absolute inset-0 flex items-center justify-start z-20">
+                  <div className="text-white px-8 sm:px-12 md:px-16 lg:px-20 max-w-3xl transform transition-all duration-700 group-hover:translate-x-2">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-2 sm:mb-4 leading-tight drop-shadow-xl transform transition-all duration-500 group-hover:scale-105">
+                      {banner.title}
+                    </h2>
+                    {banner.subtitle && (
+                      <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-4 sm:mb-6 opacity-90 font-medium drop-shadow-lg transform transition-all duration-500 delay-100 group-hover:translate-y-1">
+                        {banner.subtitle}
+                      </p>
+                    )}
+                    {banner.ctaText && (
+                      <button className="bg-gradient-to-r from-white to-gray-100 text-gray-900 hover:from-gray-100 hover:to-white px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-sm sm:text-base md:text-lg transition-all duration-500 transform hover:scale-110 hover:shadow-2xl flex items-center space-x-3 group/btn">
+                        <span className="drop-shadow-sm">{banner.ctaText}</span>
+                        <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5 group-hover/btn:translate-x-2 group-hover/btn:rotate-12 transition-all duration-300" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* arrows */}
-        <button
-          onClick={prevSlide}
-          className="absolute top-1/2 left-4 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <button
-          onClick={nextSlide}
-          className="absolute top-1/2 right-4 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-
-        {/* play/pause */}
-        <button
-          onClick={() => setIsPlaying(!isPlaying)}
-          className="absolute bottom-4 left-4 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition"
-        >
-          {isPlaying ? (
-            <Pause className="w-5 h-5" />
-          ) : (
-            <Play className="w-5 h-5" />
-          )}
-        </button>
-
-        {/* counter */}
-        <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-          {currentSlide + 1} / {banners.length}
-        </div>
-
-        {/* dots */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition ${
-                currentSlide === index ? "bg-white" : "bg-gray-400"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* thumbnail preview */}
-      <div className="hidden md:flex justify-center mt-4 space-x-2">
-        {banners.map((banner, index) => (
-          <div
-            key={banner.id}
-            onClick={() => goToSlide(index)}
-            className={`w-20 h-12 relative cursor-pointer rounded overflow-hidden border-2 ${
-              currentSlide === index ? "border-blue-500" : "border-transparent"
-            }`}
-          >
-            <Image
-              unoptimized
-              src={getImageUrl(banner.imageUrl)}
-              alt={banner.title}
-              fill
-              className="object-cover"
-            />
+            ))}
           </div>
-        ))}
+
+          {/* Enhanced navigation arrows */}
+          <button
+            onClick={prevSlide}
+            className="absolute top-1/2 left-6 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white rounded-2xl p-3 transition-all duration-300 hover:scale-110 shadow-xl border border-white/20 z-30 group/nav"
+          >
+            <ChevronLeft className="w-6 h-6 group-hover/nav:-translate-x-0.5 transition-transform" />
+          </button>
+          <button
+            onClick={nextSlide}
+            className="absolute top-1/2 right-6 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white rounded-2xl p-3 transition-all duration-300 hover:scale-110 shadow-xl border border-white/20 z-30 group/nav"
+          >
+            <ChevronRight className="w-6 h-6 group-hover/nav:translate-x-0.5 transition-transform" />
+          </button>
+
+          {/* Enhanced play/pause button */}
+          <button
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="absolute bottom-6 left-6 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white rounded-2xl p-3 transition-all duration-300 hover:scale-110 shadow-xl border border-white/20 z-30 group/play"
+          >
+            {isPlaying ? (
+              <Pause className="w-5 h-5 group-hover/play:scale-110 transition-transform" />
+            ) : (
+              <Play className="w-5 h-5 group-hover/play:scale-110 transition-transform" />
+            )}
+          </button>
+
+          {/* Enhanced counter */}
+          <div className="absolute bottom-6 right-6 bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-2xl text-sm font-semibold shadow-xl border border-white/20 z-30">
+            <span className="drop-shadow-sm">
+              {currentSlide + 1} / {banners.length}
+            </span>
+          </div>
+
+          {/* Enhanced dots indicator */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3 z-30">
+            {banners.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`transition-all duration-300 rounded-full border-2 ${
+                  currentSlide === index
+                    ? "w-8 h-3 bg-white border-white shadow-lg"
+                    : "w-3 h-3 bg-white/50 border-white/50 hover:bg-white/70 hover:scale-125"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Floating effect indicators */}
+        <div className="absolute -top-2 -right-2 w-4 h-4 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full opacity-60 animate-pulse" />
+        <div
+          className="absolute -bottom-2 -left-2 w-3 h-3 bg-gradient-to-br from-pink-400 to-red-500 rounded-full opacity-60 animate-pulse"
+          style={{ animationDelay: "1s" }}
+        />
+        <div
+          className="absolute top-1/4 -right-1 w-2 h-2 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full opacity-60 animate-pulse"
+          style={{ animationDelay: "2s" }}
+        />
       </div>
     </div>
   );

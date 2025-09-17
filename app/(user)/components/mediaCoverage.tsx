@@ -50,10 +50,13 @@ const MediaCoveragePage = () => {
   };
   return (
     <div className="px-4 sm:px-6 lg:px-8">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <Heading title="Media Coverage" />
-        </div>
+      <div className="text-center mb-14">
+        <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900">
+          ⭐ Media <span className="text-blue-600">Coverage</span>
+        </h2>
+        <p className="mt-3 text-gray-600 text-base lg:text-lg">
+          Discover insights, stories, and trends shaping the creative world.
+        </p>
       </div>
 
       <div className="mt-8 flex flex-col">
@@ -86,23 +89,40 @@ const MediaCoveragePage = () => {
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {coverages.map((coverage) => (
-                  <a href={coverage.url} key={coverage.id}>
-                    <div
-                      key={coverage.id}
-                      className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 flex flex-col"
-                    >
-                      <div className="relative pb-3/4 h-48 bg-gray-100">
-                        <img
-                          src={getImageUrl(coverage.imageUrl)}
-                          alt={coverage.title}
-                          className="absolute h-full w-full object-cover"
-                        />
-                      </div>
-                      <div className="p-4 flex-1 flex flex-col">
-                        <h3 className="text-lg font-medium text-gray-900 truncate">
-                          {coverage.title}
-                        </h3>
-                      </div>
+                  <a
+                    key={coverage.id}
+                    href={coverage.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative block rounded-xl overflow-hidden shadow hover:shadow-lg transition-all duration-300"
+                  >
+                    {/* Image */}
+                    <div className="relative h-56 w-full overflow-hidden">
+                      <img
+                        src={getImageUrl(coverage.imageUrl)}
+                        alt={coverage.title}
+                        className="h-full w-full object-cover transform group-hover:scale-105 transition duration-500"
+                      />
+                      {/* Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-70 group-hover:opacity-90 transition"></div>
+
+                      {/* External link icon */}
+                      <ExternalLink
+                        className="absolute top-3 right-3 text-white opacity-80 group-hover:opacity-100"
+                        size={20}
+                      />
+                    </div>
+
+                    {/* Content */}
+                    <div className="absolute bottom-0 p-4 text-white">
+                      <h3 className="text-lg font-semibold line-clamp-2">
+                        {coverage.title}
+                      </h3>
+
+                      {/* Hover CTA */}
+                      <span className="mt-3 inline-block text-sm font-medium text-blue-300 opacity-0 group-hover:opacity-100 transition">
+                        Read Full Article →
+                      </span>
                     </div>
                   </a>
                 ))}
