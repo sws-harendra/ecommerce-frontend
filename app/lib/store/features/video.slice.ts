@@ -89,8 +89,17 @@ const videoSlice = createSlice({
         state.status = "failed";
         state.error = action.payload as string;
       })
+      .addCase(createVideo.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
       .addCase(createVideo.fulfilled, (state, action) => {
+        state.status = "succeeded";
         state.videos.push(action.payload);
+      })
+      .addCase(createVideo.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload as string;
       })
       .addCase(updateVideo.fulfilled, (state, action) => {
         const idx = state.videos.findIndex((v) => v.id === action.payload.id);

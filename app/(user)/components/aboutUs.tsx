@@ -1,6 +1,7 @@
 import Heading from "@/app/commonComponents/heading";
 import { brandName } from "@/app/contants";
 import React from "react";
+import StaticPageRenderer from "./staticPageRenderer";
 
 const AboutUs = () => {
   return (
@@ -21,6 +22,7 @@ const AboutUs = () => {
         <div className="absolute -top-10 -right-10 w-60 h-60 bg-gradient-to-r from-purple-200 via-pink-200 to-blue-200 rounded-full opacity-30 blur-3xl pointer-events-none"></div>
         <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-gradient-to-r from-green-200 via-yellow-200 to-blue-200 rounded-full opacity-30 blur-3xl pointer-events-none"></div>
 
+        {/* <StaticPageRenderer slug="aboutus" /> */}
         <div className="relative space-y-6">
           <p className="text-base md:text-lg text-gray-700 leading-relaxed">
             At{" "}

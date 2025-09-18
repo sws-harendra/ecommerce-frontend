@@ -12,7 +12,6 @@ import { artistService } from "@/app/sercices/user/artist.service";
 import { Artist } from "@/app/types/artist.types";
 import { getImageUrl } from "@/app/utils/getImageUrl";
 import { slugify } from "@/app/utils/slugify";
-import Heading from "@/app/commonComponents/heading";
 
 const FeaturedArtists = () => {
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -22,7 +21,7 @@ const FeaturedArtists = () => {
     const fetchArtists = async () => {
       try {
         const data: any = await artistService.featuredArtist();
-        setArtists(data);
+        setArtists(data || []);
       } catch (error) {
         console.error("Error fetching featured artists:", error);
       } finally {
@@ -32,6 +31,7 @@ const FeaturedArtists = () => {
     fetchArtists();
   }, []);
 
+  // Show loader
   if (loading) {
     return (
       <div className="flex justify-center items-center py-20 text-gray-600">
@@ -40,6 +40,11 @@ const FeaturedArtists = () => {
         </div>
       </div>
     );
+  }
+
+  // Hide section if no data
+  if (!artists.length) {
+    return null;
   }
 
   return (

@@ -103,7 +103,7 @@ const testimonialSlice = createSlice({
         const index = state.testimonials.findIndex(
           (t) => t.id === action.payload.data.id
         );
-        if (index !== -1) state.testimonials[index] = action.payload;
+        if (index !== -1) state.testimonials[index] = action.payload.data;
       })
       // Delete
       .addCase(deleteTestimonial.fulfilled, (state, action) => {

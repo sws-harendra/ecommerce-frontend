@@ -1,6 +1,22 @@
 import axiosInstance from "@/app/utils/axiosinterceptor";
 
 export const mediaCoverageService = {
+  getAllMediaCoveragesforUsers: async (isActive?: boolean) => {
+    try {
+      const params =
+        isActive !== undefined ? { isActive: String(isActive) } : {};
+      const response = await axiosInstance.get("/media-coverage/users", {
+        params,
+      });
+      // Ensure we always return an array
+
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching media coverages:", error);
+      return [];
+    }
+  },
+
   // Get all media coverages
   getAllMediaCoverages: async (isActive?: boolean) => {
     try {
@@ -31,18 +47,15 @@ export const mediaCoverageService = {
   },
 
   // Update media coverage
-  updateMediaCoverage: async (
-    id: number,
-    formData: { title?: string; url?: string; image?: File }
-  ) => {
-    const data = new FormData();
-    if (formData.title) data.append("title", formData.title);
-    if (formData.url) data.append("url", formData.url);
-    if (formData.image) data.append("image", formData.image);
-
-    const response = await axiosInstance.put(`/media-coverage/${id}`, data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+  // service
+  updateMediaCoverage: async (id: number, formData: FormData) => {
+    const response = await axiosInstance.put(
+      `/media-coverage/${id}`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
     return response.data;
   },
 

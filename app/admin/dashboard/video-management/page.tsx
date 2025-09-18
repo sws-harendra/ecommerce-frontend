@@ -29,6 +29,8 @@ export default function VideoManager() {
   const [selectedProductId, setSelectedProductId] = useState<number | null>(
     null
   );
+
+  const isloading = status == "loading";
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editProductId, setEditProductId] = useState<number | null>(null);
@@ -213,11 +215,15 @@ export default function VideoManager() {
 
                 <button
                   onClick={handleUpload}
-                  disabled={!videoFile || !selectedProductId}
+                  disabled={!videoFile || !selectedProductId || isloading}
                   className="w-full px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                 >
-                  <Plus className="h-5 w-5" />
-                  Upload Video
+                  {isloading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  ) : (
+                    <Plus className="h-5 w-5" />
+                  )}
+                  {isloading ? "Uploading..." : "Upload Video"}
                 </button>
               </div>
             </div>

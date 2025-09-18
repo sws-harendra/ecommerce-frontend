@@ -18,6 +18,7 @@ import {
 import { Plus, Search, Trash2, X } from "lucide-react";
 import { AppDispatch, RootState } from "@/app/lib/store/store";
 import { fetchProducts } from "@/app/lib/store/features/productSlice";
+import { toast } from "sonner";
 
 interface Product {
   id: number;
@@ -129,6 +130,7 @@ export default function ProductVariantsPage() {
         data: { ...newVariant, optionId: parseInt(newVariant.optionId) },
       })
     );
+    toast.success("Added Varient Successfully");
     resetVariantForm();
     setShowAddVariant(false);
   };

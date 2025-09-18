@@ -58,7 +58,6 @@ const MediaCoveragePage = () => {
       toast.error("Failed to update status");
     }
   };
-
   const handleEdit = (coverage: MediaCoverage) => {
     dispatch(setCurrentCoverage(coverage));
     setIsSidebarOpen(true);
@@ -205,13 +204,30 @@ const MediaCoveragePage = () => {
                           {coverage.isActive ? "Active" : "Inactive"}
                         </span>
                         <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEdit(coverage)}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Edit"
+                          <SidebarForm
+                            title={
+                              currentCoverage
+                                ? "Edit Media Coverage"
+                                : "Add New Media Coverage"
+                            }
+                            trigger={
+                              <button
+                                onClick={() => handleEdit(coverage)}
+                                className="text-blue-600 hover:text-blue-900"
+                                title="Edit"
+                              >
+                                <Edit size={18} />
+                              </button>
+                            }
                           >
-                            <Edit size={18} />
-                          </button>
+                            <MediaCoverageForm
+                              onSuccess={handleFormSuccess}
+                              initialData={currentCoverage}
+                              onCancel={handleCancel}
+                              isEditMode={true}
+                            />
+                          </SidebarForm>
+
                           <button
                             onClick={() => handleDelete(coverage.id)}
                             className="text-red-600 hover:text-red-900"

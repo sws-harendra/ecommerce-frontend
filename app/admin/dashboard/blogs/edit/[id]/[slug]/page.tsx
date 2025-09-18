@@ -72,7 +72,7 @@ export default function EditBlog() {
       })
     );
 
-    // router.push("/blogs"); // go back to blog list after update
+    router.push("/admin/dashboard/blogs"); // go back to blog list after update
   };
 
   if (!currentPost) return <p>Loading blog...</p>;

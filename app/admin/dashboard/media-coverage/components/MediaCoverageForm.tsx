@@ -15,12 +15,14 @@ interface MediaCoverageFormProps {
   onSuccess: () => void;
   initialData?: MediaCoverage | null;
   onCancel: () => void;
+  isEditMode?: boolean;
 }
 
 const MediaCoverageForm = ({
   onSuccess,
   initialData,
   onCancel,
+  isEditMode,
 }: MediaCoverageFormProps) => {
   const dispatch = useAppDispatch();
   const [title, setTitle] = useState(initialData?.title || "");
@@ -28,7 +30,6 @@ const MediaCoverageForm = ({
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isEditMode = !!initialData;
 
   useEffect(() => {
     if (initialData?.imageUrl) {
@@ -62,8 +63,10 @@ const MediaCoverageForm = ({
       }
 
       if (isEditMode && initialData) {
+        console.log(initialData);
+        console.log("formdata==>", formData);
         await dispatch(
-          updateMediaCoverage({ id: initialData.id, data: formData })
+          updateMediaCoverage({ id: initialData.id, formData })
         ).unwrap();
         toast.success("Media coverage updated successfully");
       } else {
@@ -73,6 +76,8 @@ const MediaCoverageForm = ({
 
       onSuccess();
     } catch (error: any) {
+      console.log(error);
+
       toast.error(error.message || "Something went wrong");
     } finally {
       setIsSubmitting(false);

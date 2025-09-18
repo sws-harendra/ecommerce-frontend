@@ -3,11 +3,13 @@
 import RichTextEditor from "@/app/commonComponents/RichTextEditor";
 import { pageService } from "@/app/sercices/user/staticpage.service";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const pages = [
   { title: "Privacy Policy", slug: "privacy-policy" },
   { title: "Refund Policy", slug: "refund-policy" },
   { title: "Terms & Conditions", slug: "terms&conditions" },
+  { title: "About Us", slug: "aboutus" },
 ];
 
 export default function PageEditor() {
@@ -24,7 +26,7 @@ export default function PageEditor() {
         slug: selectedPage.slug,
         content,
       });
-      alert(`${selectedPage.title} saved!`);
+      toast.success(`${selectedPage.title} saved!`);
     } catch (err) {
       console.error(err);
     }

@@ -197,7 +197,7 @@ const variantSlice = createSlice({
 
     // Add Option
     builder.addCase(addVariantOption.fulfilled, (state, action) => {
-      state.options.push(action.payload);
+      state.options.push(action.payload.data);
     });
 
     // Fetch Product Variants
@@ -208,11 +208,7 @@ const variantSlice = createSlice({
 
     // Create Product Variant
     builder.addCase(createProductVariant.fulfilled, (state, action) => {
-      const { productId, data } = action.payload;
-      if (!state.productVariants[productId]) {
-        state.productVariants[productId] = [];
-      }
-      state.productVariants[productId].push(data);
+      state.status = "succeeded";
     });
 
     // Delete Product Variant

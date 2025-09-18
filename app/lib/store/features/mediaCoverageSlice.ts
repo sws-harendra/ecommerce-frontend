@@ -53,24 +53,17 @@ export const createMediaCoverage = createAsyncThunk(
 );
 
 // Update media coverage
+// slice
 export const updateMediaCoverage = createAsyncThunk(
   "mediaCoverages/update",
-  async (
-    payload: {
-      id: number;
-      formData: { title?: string; url?: string; image?: File };
-    },
-    { rejectWithValue }
-  ) => {
+  async (payload: { id: number; formData: FormData }, { rejectWithValue }) => {
     try {
       return await mediaCoverageService.updateMediaCoverage(
         payload.id,
         payload.formData
       );
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        return rejectWithValue(err.message);
-      }
+      if (err instanceof Error) return rejectWithValue(err.message);
       return rejectWithValue("Failed to update media coverage");
     }
   }
@@ -156,11 +149,12 @@ const mediaCoverageSlice = createSlice({
 
     // Toggle status
     builder.addCase(toggleMediaCoverageStatus.fulfilled, (state, action) => {
+      console.log(action);
       const index = state.coverages.findIndex(
-        (c) => c.id === action.payload.id
+        (c) => c.id === action.payload.data.id
       );
       if (index !== -1) {
-        state.coverages[index] = action.payload;
+        state.coverages[index].isActive = action.payload.data.isActive;
       }
     });
   },
